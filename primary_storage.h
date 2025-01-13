@@ -45,17 +45,24 @@ typedef struct
     Expression *formula;
     short state;
 
-    struct Cell *dependencies;
+    Cell **dependencies;
     size_t dependency_count;
 
-    struct Cell *dependants;
-    size_t dependant_count;
+    // Cell **dependants; dependant to be implemented by linked list
+
 } Cell;
 
-Cell initCell(Cell *cell, short row, short col);
+void initStorage(short rows, short cols);
+void initCell(Cell *cell, short row, short col);
 void updateCell(Cell *cell);
-void updateDependencies(Cell *cell);
-void updateDependants(Cell *cell);
-int cellValue(Cell *cell);
+void updateDependencies(short *rows, short *cols, short size, Cell *cell);
+int cellValue(short row, short col);
+// void updateDependencies(Cell *cell);
+//  void markDependantsDirty(Cell *cell);
+// void addDependant(Cell *cell, Cell *dependant);
+void setValue(short row, short col, int value);
+void setFormula(short row, short col, Expression *formula);
+void setState(short row, short col, short state);
+// void deleteDependant(short source_row, short source_col, short target_row, short target_col);
 
 #endif
