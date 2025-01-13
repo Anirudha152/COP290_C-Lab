@@ -3,8 +3,9 @@
 #include <string.h>
 #include <time.h>
 #include <ctype.h>
+#include "primary_storage.h"
 
-#define TOTAL_ROWS 99900
+#define TOTAL_ROWS 999
 #define TOTAL_COLS 18276
 #define MIN_CELL_WIDTH 4
 #define MAX_CELL_WIDTH 12
@@ -14,28 +15,27 @@
 #define MAX_COL_LABEL 4
 
 typedef struct {
-    int start_row;
-    int start_col;
-    int visible_rows;
-    int visible_cols;
-    int cell_width;
+    short start_row;
+    short start_col;
+    short visible_rows;
+    short visible_cols;
+    short cell_width;
 } Viewport;
 
 typedef struct {
-    int row;
-    int col;
+    short row;
+    short col;
     clock_t time;
 } LastEdit;
 
 typedef struct {
     WINDOW *main_win;
     WINDOW *cmd_win;
-    int *data;
-    int curr_row;
-    int curr_col;
-    int mode;
+    short curr_row;
+    short curr_col;
+    short mode;
     char cmd_buffer[CMD_BUFFER_SIZE];
-    int cmd_pos;
+    short cmd_pos;
     double last_cmd_time;
     LastEdit last_edit;
     Viewport viewport;
@@ -50,13 +50,9 @@ SpreadsheetState* init_spreadsheet() {
     SpreadsheetState *state = malloc(sizeof(SpreadsheetState));
     if (!state) return NULL;
 
-    state->data = calloc(TOTAL_ROWS * TOTAL_COLS, sizeof(int));
-    if (!state->data) {
-        free(state);
-        return NULL;
-    }
+    initStorage(TOTAL_ROWS, TOTAL_COLS);
 
-    int max_y, max_x;
+    short max_y, max_x;
     getmaxyx(stdscr, max_y, max_x);
     state->main_win = newwin(max_y - 3, max_x, 0, 0);
     state->cmd_win = newwin(3, max_x, max_y - 3, 0);
@@ -83,7 +79,6 @@ SpreadsheetState* init_spreadsheet() {
 
 void cleanup_spreadsheet(SpreadsheetState *state) {
     if (state) {
-        free(state->data);
         delwin(state->main_win);
         delwin(state->cmd_win);
         free(state);
@@ -91,27 +86,27 @@ void cleanup_spreadsheet(SpreadsheetState *state) {
     endwin();
 }
 
-void index_to_excel_col(int col, char* buffer) {
+void index_to_excel_col(const short col, char* buffer) {
     int len = 0;
     if (col >= 26) {
-        int first = col / 26 - 1;
-        int second = col % 26;
+        const int first = col / 26 - 1;
+        const int second = col % 26;
         if (first >= 26) {
-            buffer[len++] = 'A' + (first / 26 - 1);
-            buffer[len++] = 'A' + (first % 26);
+            buffer[len++] = (char)('A' + (first / 26 - 1));
+            buffer[len++] = (char)('A' + (first % 26));
         } else {
-            buffer[len++] = 'A' + first;
+            buffer[len++] = (char)('A' + first);
         }
-        buffer[len++] = 'A' + second;
+        buffer[len++] = (char)('A' + second);
     } else {
-        buffer[len++] = 'A' + col;
+        buffer[len++] = (char)('A' + col);
     }
     buffer[len] = '\0';
 }
 
-int excel_col_to_index(const char* col) {
-    int result = 0;
-    int len = strlen(col);
+short excel_col_to_index(const char* col) {
+    short result = 0;
+    const unsigned int len = strlen(col);
     for (int i = 0; i < len - 1; i++) {
         result = (result + (col[i] - 'A' + 1)) * 26;
     }
@@ -119,9 +114,9 @@ int excel_col_to_index(const char* col) {
     return result;
 }
 
-void move_cursor(SpreadsheetState *state, int delta_row, int delta_col) {
-    int new_row = state->curr_row + delta_row;
-    int new_col = state->curr_col + delta_col;
+void move_cursor(SpreadsheetState *state, const short delta_row, const short delta_col) {
+    const short new_row = state->curr_row + delta_row;
+    const short new_col = state->curr_col + delta_col;
 
     if (new_row >= 0 && new_row < TOTAL_ROWS) {
         state->curr_row = new_row;
@@ -140,9 +135,9 @@ void move_cursor(SpreadsheetState *state, int delta_row, int delta_col) {
     }
 }
 
-void scroll_viewport(SpreadsheetState *state, int delta_row, int delta_col) {
-    int new_start_row = state->viewport.start_row + delta_row;
-    int new_start_col = state->viewport.start_col + delta_col;
+void scroll_viewport(SpreadsheetState *state, const short delta_row, const short delta_col) {
+    const short new_start_row = state->viewport.start_row + delta_row;
+    const short new_start_col = state->viewport.start_col + delta_col;
 
     if (new_start_row >= 0 && new_start_row <= TOTAL_ROWS - state->viewport.visible_rows)
         state->viewport.start_row = new_start_row;
@@ -151,18 +146,19 @@ void scroll_viewport(SpreadsheetState *state, int delta_row, int delta_col) {
         state->viewport.start_col = new_start_col;
 }
 
-void resize_cells(SpreadsheetState *state, int delta) {
-    int new_width = state->viewport.cell_width + delta;
+void resize_cells(SpreadsheetState *state, const short delta) {
+    const short new_width = state->viewport.cell_width + delta;
     if (new_width >= MIN_CELL_WIDTH && new_width <= MAX_CELL_WIDTH) {
         state->viewport.cell_width = new_width;
     }
 }
 
-void process_expression(SpreadsheetState *state, const char* input, int row, int col) {
-    clock_t start = clock();
+void process_expression(SpreadsheetState *state, const char* input, const short row, const short col) {
+    const clock_t start = clock();
 
-    int value = atoi(input);
-    state->data[row * TOTAL_COLS + col] = value;
+    const int value = atoi(input);
+    setValue(row, col, value);
+    setState(row, col, 0);
 
     state->last_edit.row = row;
     state->last_edit.col = col;
@@ -171,21 +167,22 @@ void process_expression(SpreadsheetState *state, const char* input, int row, int
     state->last_cmd_time = ((double)(clock() - start)) / CLOCKS_PER_SEC * 1000;
 }
 
-void handle_movement_command(SpreadsheetState *state, char cmd) {
+void handle_movement_command(SpreadsheetState *state, const char cmd) {
     switch(cmd) {
         case 'w': case 'W': scroll_viewport(state, -SCROLL_AMOUNT, 0); break;
         case 's': case 'S': scroll_viewport(state, SCROLL_AMOUNT, 0); break;
         case 'a': case 'A': scroll_viewport(state, 0, -SCROLL_AMOUNT); break;
         case 'd': case 'D': scroll_viewport(state, 0, SCROLL_AMOUNT); break;
+        default: break;
     }
 }
 
-void parse_cell_reference(const char* ref, int* row, int* col) {
+void parse_cell_reference(const char* ref, short* row, short* col) {
     char col_str[MAX_COL_LABEL] = {0};
     int i = 0;
 
     while (isalpha(ref[i]) && i < MAX_COL_LABEL - 1) {
-        col_str[i] = toupper(ref[i]);
+        col_str[i] = (char)toupper(ref[i]);
         i++;
     }
     col_str[i] = '\0';
@@ -195,7 +192,7 @@ void parse_cell_reference(const char* ref, int* row, int* col) {
 }
 
 void process_command(SpreadsheetState *state) {
-    clock_t start = clock();
+    const clock_t start = clock();
 
     if (strlen(state->cmd_buffer) == 1 && strchr("wasdWASD", state->cmd_buffer[0])) {
         handle_movement_command(state, state->cmd_buffer[0]);
@@ -203,7 +200,7 @@ void process_command(SpreadsheetState *state) {
         char *equals = strchr(state->cmd_buffer, '=');
         if (equals) {
             *equals = '\0';
-            int row, col;
+            short row, col;
             parse_cell_reference(state->cmd_buffer, &row, &col);
             if (row >= 0 && row < TOTAL_ROWS && col >= 0 && col < TOTAL_COLS) {
                 process_expression(state, equals + 1, row, col);
@@ -212,36 +209,36 @@ void process_command(SpreadsheetState *state) {
         }
     }
 
-    state->last_cmd_time = ((double)(clock() - start)) / CLOCKS_PER_SEC * 1000;
+    state->last_cmd_time = (double)(clock() - start) / CLOCKS_PER_SEC * 1000;
     state->cmd_buffer[0] = '\0';
     state->cmd_pos = 0;
 }
 
-void draw_cell(WINDOW *win, int value, int y, int x, int width, int attrs) {
+void draw_cell(WINDOW *win, const int value, const short y, const short x, const short width, const int attrs) {
     if (attrs) wattron(win, attrs);
     mvwprintw(win, y, x, "%-*d", width - 1, value);
     if (attrs) wattroff(win, attrs);
 }
 
-void draw_grid(SpreadsheetState *state) {
+void draw_grid(const SpreadsheetState *state) {
     wclear(state->main_win);
 
-    for (int j = 0; j < state->viewport.visible_cols; j++) {
-        int actual_col = j + state->viewport.start_col;
+    for (short j = 0; j < state->viewport.visible_cols; j++) {
+        const short actual_col = j + state->viewport.start_col;
         char col_label[MAX_COL_LABEL];
         index_to_excel_col(actual_col, col_label);
         mvwprintw(state->main_win, 0, (j + 1) * state->viewport.cell_width, "%s", col_label);
     }
 
-    for (int i = 0; i < state->viewport.visible_rows; i++) {
-        int actual_row = i + state->viewport.start_row;
+    for (short i = 0; i < state->viewport.visible_rows; i++) {
+        const short actual_row = i + state->viewport.start_row;
         mvwprintw(state->main_win, i + 1, 0, "%4d", actual_row + 1);
 
-        for (int j = 0; j < state->viewport.visible_cols; j++) {
-            int actual_col = j + state->viewport.start_col;
-            int x = (j + 1) * state->viewport.cell_width;
-            int y = i + 1;
-            int value = state->data[actual_row * TOTAL_COLS + actual_col];
+        for (short j = 0; j < state->viewport.visible_cols; j++) {
+            const short actual_col = j + state->viewport.start_col;
+            const short x = (j + 1) * state->viewport.cell_width;
+            const short y = i + 1;
+            const int value = cellValue(actual_row, actual_col);
 
             int attrs = 0;
             if (state->mode == GRID_MODE && actual_row == state->curr_row && actual_col == state->curr_col)
@@ -270,7 +267,7 @@ void draw_command_line(SpreadsheetState *state) {
     wrefresh(state->cmd_win);
 }
 
-void handle_grid_input(SpreadsheetState *state, int ch) {
+void handle_grid_input(SpreadsheetState *state, const int ch) {
     switch (ch) {
         case '\t':
             state->mode = COMMAND_MODE;
@@ -293,15 +290,17 @@ void handle_grid_input(SpreadsheetState *state, int ch) {
         }
         case KEY_BACKSPACE:
         case 127:
-            state->data[state->curr_row * TOTAL_COLS + state->curr_col] = 0;
+            setValue(state->curr_row, state->curr_col, 0);
+            setState(state->curr_row, state->curr_col, 0);
             state->last_edit.row = state->curr_row;
             state->last_edit.col = state->curr_col;
             state->last_edit.time = clock();
             break;
+        default: break;
     }
 }
 
-void handle_command_input(SpreadsheetState *state, int ch) {
+void handle_command_input(SpreadsheetState *state, const int ch) {
     switch (ch) {
         case '\t':
             state->mode = GRID_MODE;
@@ -317,7 +316,7 @@ void handle_command_input(SpreadsheetState *state, int ch) {
             break;
         default:
             if (state->cmd_pos < CMD_BUFFER_SIZE - 1 && ch >= 32 && ch <= 126) {
-                state->cmd_buffer[state->cmd_pos++] = ch;
+                state->cmd_buffer[state->cmd_pos++] = (char)ch;
                 state->cmd_buffer[state->cmd_pos] = '\0';
             }
             break;
@@ -343,7 +342,7 @@ int main() {
         draw_grid(state);
         draw_command_line(state);
 
-        int ch = getch();
+        const int ch = getch();
         if (ch == 'q' || ch == 'Q') break;
 
         if (state->mode == GRID_MODE) {
