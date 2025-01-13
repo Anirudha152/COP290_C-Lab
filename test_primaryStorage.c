@@ -4,8 +4,8 @@
 
 int main()
 {
-    short rows = 50;
-    short cols = 50;
+    short rows = 5;
+    short cols = 5;
 
     initStorage(rows, cols);
 

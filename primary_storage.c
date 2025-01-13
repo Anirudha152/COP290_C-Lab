@@ -11,7 +11,8 @@ void initStorage(short rows, short cols)
     total_rows = rows;
     total_cols = cols;
 
-    table = (Cell *)malloc(sizeof(Cell) * rows * cols);
+    int size = (int)rows * (int)cols;
+    table = (Cell *)malloc(sizeof(Cell) * size);
 
     if (table == NULL)
     {
@@ -19,9 +20,9 @@ void initStorage(short rows, short cols)
         exit(1);
     }
 
-    for (short i = 0; i < rows; i++)
+    for (int i = 0; i < rows; i++)
     {
-        for (short j = 0; j < cols; j++)
+        for (int j = 0; j < cols; j++)
         {
             initCell(&table[i * cols + j], i, j);
         }
@@ -48,7 +49,7 @@ int cellValue(short row, short col)
         return 0;
     }
 
-    Cell *cell = &table[row * total_cols + col];
+    Cell *cell = &table[(int)row * (int)total_cols + (int)col];
     // if (cell->state == 2)
     // {
     //     updateCell(cell);
@@ -56,18 +57,9 @@ int cellValue(short row, short col)
     return cell->value;
 }
 
-// void updateDependencies(Cell *cell, Cell **dependency)
-// {
-//     cell->dependencies = dependency;
-// }
-
-// void updateDependants(Cell *cell, Cell **dependant)
-// {
-//     cell->dependants = dependant;
-// }
-
-void updateDependencies(short *rows, short *cols, short size, Cell *cell)
+void updateDependencies(short *rows, short *cols, int size, short source_row, short source_col)
 {
+    Cell *cell = &table[(int)source_row * total_cols + source_col];
     if (cell->dependencies != NULL)
     {
         free(cell->dependencies);
@@ -81,21 +73,20 @@ void updateDependencies(short *rows, short *cols, short size, Cell *cell)
         exit(1);
     }
 
-    for (short i = 0; i < size; i++)
+    for (int i = 0; i < size; i++)
     {
         if (rows[i] < 0 || rows[i] >= total_rows || cols[i] < 0 || cols[i] >= total_cols)
         {
             printf("Invalid cell reference\n");
             exit(1);
         }
-        dependency[i] = &table[rows[i] * total_cols + cols[i]];
+        dependency[i] = &table[(int)rows[i] * (int)total_cols + (int)cols[i]];
     }
 
     cell->dependencies = dependency;
 }
 
-// implementation of dependants remaining
-void addDependant(Cell *cell, short row, short col)
+void addDependant(short source_row, short source_col, short row, short col)
 {
     if (row < 0 || row >= total_rows || col < 0 || col >= total_cols)
     {
@@ -103,7 +94,9 @@ void addDependant(Cell *cell, short row, short col)
         exit(1);
     }
 
-    Cell *dependant = &table[row * total_cols + col];
+    Cell *cell = &table[(int)source_row * (int)total_cols + (int)source_col];
+
+    Cell *dependant = &table[(int)row * (int)total_cols + (int)col];
     Node *new_node = (Node *)malloc(sizeof(Node));
     if (new_node == NULL)
     {
@@ -132,25 +125,25 @@ void addDependant(Cell *cell, short row, short col)
 
 void setValue(short row, short col, int value)
 {
-    Cell *cell = &table[row * total_cols + col];
+    Cell *cell = &table[(int)row * (int)total_cols + (int)col];
     cell->value = value;
 }
 
 void setFormula(short row, short col, Expression *formula)
 {
-    Cell *cell = &table[row * total_cols + col];
+    Cell *cell = &table[(int)row * (int)total_cols + (int)col];
     cell->formula = formula;
 }
 
 void setState(short row, short col, short state)
 {
-    Cell *cell = &table[row * total_cols + col];
+    Cell *cell = &table[(int)row * (int)total_cols + (int)col];
     cell->state = state;
 }
 
-void deleteDependants(short sorce_row, short source_col, short target_row, short target_col)
+void deleteDependant(short sorce_row, short source_col, short target_row, short target_col)
 {
-    Cell *source = &table[sorce_row * total_cols + source_col];
+    Cell *source = &table[(int)sorce_row * (int)total_cols + (int)source_col];
     Node *temp = source->head_dependant;
     Node *prev = NULL;
 
