@@ -2,20 +2,25 @@
 #define primary_storage_h
 
 #include <stddef.h>
-
+struct Cell;
+typedef struct Node
+{
+    struct Cell *cell;
+    struct Node *next;
+} Node;
 typedef struct
 {
     short type;
     int value;
-    Cell *cell;
+    struct Cell *cell;
 
 } Value;
 
 typedef struct
 {
     short dimension;
-    Cell *cell1;
-    Cell *cell2;
+    struct Cell *cell1;
+    struct Cell *cell2;
 
 } Range;
 
@@ -37,7 +42,7 @@ typedef struct
 
 } Expression;
 
-typedef struct
+typedef struct Cell
 {
     int value;
     short row;
@@ -45,16 +50,18 @@ typedef struct
     Expression *formula;
     short state;
 
-    Cell **dependencies;
+    struct Cell **dependencies;
     size_t dependency_count;
 
     // Cell **dependants; dependant to be implemented by linked list
+    Node* head_dependant;
+    size_t dependant_count;
 
 } Cell;
 
 void initStorage(short rows, short cols);
 void initCell(Cell *cell, short row, short col);
-void updateCell(Cell *cell);
+// void updateCell(Cell *cell);
 void updateDependencies(short *rows, short *cols, short size, Cell *cell);
 int cellValue(short row, short col);
 // void updateDependencies(Cell *cell);

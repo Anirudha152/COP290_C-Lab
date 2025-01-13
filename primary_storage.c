@@ -37,8 +37,7 @@ void initCell(Cell *cell, short row, short col)
     cell->state = 0;
     cell->dependencies = NULL;
     cell->dependency_count = 0;
-    // cell->dependants = NULL;
-    // cell->dependant_count = 0;
+    cell->head_dependant = NULL;
 }
 
 int cellValue(short row, short col)
@@ -50,10 +49,10 @@ int cellValue(short row, short col)
     }
 
     Cell *cell = &table[row * total_cols + col];
-    if (cell->state == 2)
-    {
-        updateCell(cell);
-    }
+    // if (cell->state == 2)
+    // {
+    //     updateCell(cell);
+    // }
     return cell->value;
 }
 
@@ -103,6 +102,32 @@ void addDependant(Cell *cell, short row, short col)
         printf("Invalid cell reference\n");
         exit(1);
     }
+
+    Cell *dependant = &table[row * total_cols + col];
+    Node *new_node = (Node *)malloc(sizeof(Node));
+    if (new_node == NULL)
+    {
+        printf("Memory allocation failed\n");
+        exit(1);
+    }
+
+    new_node->cell = dependant;
+
+    // check if dependant is already present
+    Node *temp = cell->head_dependant;
+    while (temp != NULL)
+    {
+        if (temp->cell == dependant)
+        {
+            return;
+        }
+        temp = temp->next;
+    }
+
+    new_node->next = cell->head_dependant;
+    cell->head_dependant = new_node;
+
+    cell->dependant_count++;
 }
 
 void setValue(short row, short col, int value)
@@ -125,4 +150,26 @@ void setState(short row, short col, short state)
 
 void deleteDependants(short sorce_row, short source_col, short target_row, short target_col)
 {
+    Cell *source = &table[sorce_row * total_cols + source_col];
+    Node *temp = source->head_dependant;
+    Node *prev = NULL;
+
+    while (temp != NULL)
+    {
+        if (temp->cell->row == target_row && temp->cell->col == target_col)
+        {
+            if (prev == NULL)
+            {
+                source->head_dependant = temp->next;
+            }
+            else
+            {
+                prev->next = temp->next;
+            }
+            free(temp);
+            return;
+        }
+        prev = temp;
+        temp = temp->next;
+    }
 }
