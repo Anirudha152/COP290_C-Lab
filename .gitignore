@@ -11,3 +11,4 @@ spreadsheet
 *.o
 *.exe
 cmake-build-debug
+aks
