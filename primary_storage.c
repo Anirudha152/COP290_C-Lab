@@ -171,3 +171,4 @@ Cell *getCell(short row, short col)
 {
     return &table[(int)row * (int)total_cols + (int)col];
 }
+
