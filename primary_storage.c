@@ -45,7 +45,7 @@ int cellValue(short row, short col)
 {
     if (row < 0 || row >= total_rows || col < 0 || col >= total_cols)
     {
-        // printf("Invalid cell reference\n");
+        printf("Invalid cell reference\n");
         return 0;
     }
 
@@ -165,4 +165,9 @@ void deleteDependant(short sorce_row, short source_col, short target_row, short 
         prev = temp;
         temp = temp->next;
     }
+}
+
+Cell *getCell(short row, short col)
+{
+    return &table[(int)row * (int)total_cols + (int)col];
 }

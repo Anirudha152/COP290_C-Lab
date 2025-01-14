@@ -62,6 +62,7 @@ void initStorage(short rows, short cols);
 void initCell(Cell *cell, short row, short col);
 void updateDependencies(short *rows, short *cols, int size, short source_row, short source_col);
 int cellValue(short row, short col);
+Cell *getCell(short row, short col);
 void setValue(short row, short col, int value);
 void setFormula(short row, short col, Expression *formula);
 void setState(short row, short col, short state);
