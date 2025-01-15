@@ -10,7 +10,7 @@ void markDirty(Cell *cell)
     Node *temp = cell->head_dependant;
     while (temp != NULL)
     {
-        temp->cell->state = 1;
+
         markDirty(temp->cell);
         temp = temp->next;
     }
@@ -138,7 +138,7 @@ void cleanCell(Cell *cell)
             cleanCell(dependencies[i]);
         }
     }
-
+    
     Expression *formula = cell->formula;
     if (formula->type == 0)
     {
@@ -209,6 +209,7 @@ void cleanCell(Cell *cell)
     }
 
     cell->state = 0;
+    return;
 }
 
 void setValueExpression(short row, short col, Value *value)
@@ -358,6 +359,7 @@ void setFunctionExpression(short row, short col, short type, Range *range)
     function->type = type;
     function->range = range;
     oldFormula->function = function;
+    oldFormula->type = 2;
 
     int size = (int)(range->end_row - range->start_row + 1) * (int)(range->end_col - range->start_col + 1);
 
