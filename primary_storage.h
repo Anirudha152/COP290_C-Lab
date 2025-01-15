@@ -29,7 +29,7 @@ typedef struct
 typedef struct
 {
     short type;
-    Range *range;
+    Range range;
 
 } Function;
 
@@ -37,10 +37,10 @@ typedef struct
 {
 
     short type;
-    Value *value1;
-    Value *value2;
+    Value value1;
+    Value value2;
     short operation;
-    Function *function;
+    Function function;
 
 } Expression;
 
@@ -49,7 +49,7 @@ typedef struct Cell
     int value;
     short row;
     short col;
-    Expression *formula;
+    Expression formula;
     short state;
 
     struct Cell **dependencies;
@@ -66,7 +66,6 @@ void updateDependencies(short *rows, short *cols, int size, short source_row, sh
 int cellValue(short row, short col);
 Cell *getCell(short row, short col);
 void setValue(short row, short col, int value);
-void setFormula(short row, short col, Expression *formula);
 void setState(short row, short col, short state);
 void addDependant(short source_row, short source_col, short row, short col);
 void deleteDependant(short source_row, short source_col, short target_row, short target_col);

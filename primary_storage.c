@@ -32,12 +32,16 @@ void initStorage(short rows, short cols)
 void initExpression(Expression *formula)
 {
     formula->type = 0;
-    formula->value1 = (Value* ) malloc(sizeof(Value));
-    formula->value1->type = 0;
-    formula->value1->value = 0;
-    formula->value2 = NULL;
+    Value value;
+    value.type = 0;
+    value.value = 0;
+    formula->value1 = value;
+    
+    
+    formula->value2 = value;
     formula->operation = 0;
-    formula->function = NULL;
+    Function function;
+    formula->function = function;
 }
 
 void initCell(Cell *cell, short row, short col)
@@ -45,8 +49,9 @@ void initCell(Cell *cell, short row, short col)
     cell->row = row;
     cell->col = col;
     cell->value = 0;
-    cell->formula = (Expression* ) malloc(sizeof(Expression));
-    initExpression(cell->formula);
+    Expression formula;
+    initExpression(&formula);
+    cell->formula = formula;
     cell->state = 0;
     cell->dependencies = NULL;
     cell->dependency_count = 0;
@@ -142,11 +147,6 @@ void setValue(short row, short col, int value)
     cell->value = value;
 }
 
-void setFormula(short row, short col, Expression *formula)
-{
-    Cell *cell = &table[(int)row * (int)total_cols + (int)col];
-    cell->formula = formula;
-}
 
 void setState(short row, short col, short state)
 {
