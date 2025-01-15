@@ -11,5 +11,7 @@ int getValue(short row, short col)
     }
     else
     {
+        cleanCell(cell);
     }
 }
+

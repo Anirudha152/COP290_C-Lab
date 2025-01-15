@@ -3,11 +3,9 @@
 
 #include "primary_storage.h"
 
-void setValueExpression(short row, short col, short type, int value, short refcell_row, short refcell_col);
-void setArithmeticExpression(short row, short col, short operation, short cell1_row, short cell1_col, short cell2_row, short cell2_col);
-void setFunctionExpression(short topleft_row, short topleft_col, short bottomright_row, short bottomright_col, short type);
+void setValueExpression(short row, short col, Value *value);
+void setArithmeticExpression(short row, short col, Value *value1, Value *value2, short operation);
+void setFunctionExpression(short type, Range *range);
 int getValue(short row, short col);
-
-
 
 #endif
