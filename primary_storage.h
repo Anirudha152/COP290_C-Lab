@@ -19,8 +19,10 @@ typedef struct
 typedef struct
 {
     short dimension;
-    struct Cell *cell1;
-    struct Cell *cell2;
+    short start_row;
+    short start_col;
+    short end_row;
+    short end_col;
 
 } Range;
 
@@ -68,5 +70,6 @@ void setFormula(short row, short col, Expression *formula);
 void setState(short row, short col, short state);
 void addDependant(short source_row, short source_col, short row, short col);
 void deleteDependant(short source_row, short source_col, short target_row, short target_col);
+void initExpression(Expression *formula);
 
 #endif

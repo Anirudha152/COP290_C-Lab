@@ -32,7 +32,7 @@ void initStorage(short rows, short cols)
 void initExpression(Expression *formula)
 {
     formula->type = 0;
-    formula->value1 = malloc(sizeof(Value));
+    formula->value1 = (Value* ) malloc(sizeof(Value));
     formula->value1->type = 0;
     formula->value1->value = 0;
     formula->value2 = NULL;
@@ -45,7 +45,7 @@ void initCell(Cell *cell, short row, short col)
     cell->row = row;
     cell->col = col;
     cell->value = 0;
-    cell->formula = malloc(sizeof(Expression));
+    cell->formula = (Expression* ) malloc(sizeof(Expression));
     initExpression(cell->formula);
     cell->state = 0;
     cell->dependencies = NULL;
@@ -96,6 +96,7 @@ void updateDependencies(short *rows, short *cols, int size, short source_row, sh
     }
 
     cell->dependencies = dependency;
+    cell->dependency_count = size;
 }
 
 void addDependant(short source_row, short source_col, short row, short col)
@@ -177,8 +178,9 @@ void deleteDependant(short sorce_row, short source_col, short target_row, short 
         prev = temp;
         temp = temp->next;
     }
+    source->dependant_count--;
+    
 }
-
 Cell *getCell(short row, short col)
 {
     return &table[(int)row * (int)total_cols + (int)col];
