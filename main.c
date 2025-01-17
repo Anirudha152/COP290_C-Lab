@@ -1,4 +1,4 @@
-#include <stdio.h>
+ #include <stdio.h>
 #include "primary_storage.h"
 
 int main(void) {
