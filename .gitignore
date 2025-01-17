@@ -9,6 +9,7 @@
 .idea
 .vscode
 spreadsheet
+sheet
 *.o
 *.exe
 cmake-build-debug

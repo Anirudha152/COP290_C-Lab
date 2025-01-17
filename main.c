@@ -1,28 +1,13 @@
- #include <stdio.h>
-#include "primary_storage.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include "user_interface.h"
 
-int main(void) {
-    initStorage(1000, 1000);
-    setValue(0, 0, 10);
-    setValue(0, 1, 20);
-    setValue(0, 2, 30);
-    
-    for (int i=0;i<1000;i++) {
-        for (int j=0;j<1000;j++) {
-            addDependant(i,j,1,1);
-            short row_arr[1]={1};
-            short col_arr[1]={1};
-            updateDependencies(row_arr, col_arr, 1, i, j);
-        }
+int main(int argc, char *argv[]) {
+    // program will be run as ./prog n1 n2 where n1 and n2 are shorts
+    if (argc != 3) {
+        fprintf(stderr, "Usage: %s R C\n", argv[0]);
+        return 1;
     }
-    for (int i=0;i<1000;i++) {
-        for (int j=0;j<1000;j++) {
-            Cell *cell=getCell(i,j);
-            if (cell->dependant_count!=1000) {
-                printf("Error: %d %d\n", i, j);
-            }
-        }
-    }
+    run_user_interface(atoi(argv[1]), atoi(argv[2]));
     return 0;
-
 }

@@ -6,46 +6,40 @@ short total_rows;
 short total_cols;
 Cell *table;
 
-void initStorage(short rows, short cols)
-{
+void initStorage(const short rows, const short cols) {
     total_rows = rows;
     total_cols = cols;
 
-    int size = (int)rows * (int)cols;
-    table = (Cell *)malloc(sizeof(Cell) * size);
+    int size = (int) rows * (int) cols;
+    table = (Cell *) malloc(sizeof(Cell) * size);
 
-    if (table == NULL)
-    {
+    if (table == NULL) {
         printf("Memory allocation failed\n");
         exit(1);
     }
 
-    for (int i = 0; i < rows; i++)
-    {
-        for (int j = 0; j < cols; j++)
-        {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
             initCell(&table[i * cols + j], i, j);
         }
     }
 }
 
-void initExpression(Expression *formula)
-{
+void initExpression(Expression *formula) {
     formula->type = 0;
     Value value;
     value.type = 0;
     value.value = 0;
     formula->value1 = value;
-    
-    
+
+
     formula->value2 = value;
     formula->operation = 0;
     Function function;
     formula->function = function;
 }
 
-void initCell(Cell *cell, short row, short col)
-{
+void initCell(Cell *cell, const short row, const short col) {
     cell->row = row;
     cell->col = col;
     cell->value = 0;
@@ -58,15 +52,13 @@ void initCell(Cell *cell, short row, short col)
     cell->head_dependant = NULL;
 }
 
-int cellValue(short row, short col)
-{
-    if (row < 0 || row >= total_rows || col < 0 || col >= total_cols)
-    {
+int cellValue(const short row, const short col) {
+    if (row < 0 || row >= total_rows || col < 0 || col >= total_cols) {
         printf("Invalid cell reference\n");
         return 0;
     }
 
-    Cell *cell = &table[(int)row * (int)total_cols + (int)col];
+    Cell *cell = &table[(int) row * (int) total_cols + (int) col];
     // if (cell->state == 2)
     // {
     //     updateCell(cell);
@@ -74,50 +66,42 @@ int cellValue(short row, short col)
     return cell->value;
 }
 
-void updateDependencies(short *rows, short *cols, int size, short source_row, short source_col)
-{
-    Cell *cell = &table[(int)source_row * total_cols + source_col];
-    if (cell->dependencies != NULL)
-    {
+void updateDependencies(short *rows, short *cols, const int size, const short source_row, const short source_col) {
+    Cell *cell = &table[(int) source_row * total_cols + source_col];
+    if (cell->dependencies != NULL) {
         free(cell->dependencies);
         cell->dependencies = NULL;
     }
 
-    Cell **dependency = (Cell **)malloc(sizeof(Cell *) * size);
-    if (dependency == NULL)
-    {
+    Cell **dependency = (Cell **) malloc(sizeof(Cell *) * size);
+    if (dependency == NULL) {
         printf("Memory allocation failed\n");
         exit(1);
     }
 
-    for (int i = 0; i < size; i++)
-    {
-        if (rows[i] < 0 || rows[i] >= total_rows || cols[i] < 0 || cols[i] >= total_cols)
-        {
+    for (int i = 0; i < size; i++) {
+        if (rows[i] < 0 || rows[i] >= total_rows || cols[i] < 0 || cols[i] >= total_cols) {
             printf("Invalid cell reference\n");
             exit(1);
         }
-        dependency[i] = &table[(int)rows[i] * (int)total_cols + (int)cols[i]];
+        dependency[i] = &table[(int) rows[i] * (int) total_cols + (int) cols[i]];
     }
 
     cell->dependencies = dependency;
     cell->dependency_count = size;
 }
 
-void addDependant(short source_row, short source_col, short row, short col)
-{
-    if (row < 0 || row >= total_rows || col < 0 || col >= total_cols)
-    {
+void addDependant(const short source_row, const short source_col, const short row, const short col) {
+    if (row < 0 || row >= total_rows || col < 0 || col >= total_cols) {
         printf("Invalid cell reference\n");
         exit(1);
     }
 
-    Cell *cell = &table[(int)source_row * (int)total_cols + (int)source_col];
+    Cell *cell = &table[(int) source_row * (int) total_cols + (int) source_col];
 
-    Cell *dependant = &table[(int)row * (int)total_cols + (int)col];
-    Node *new_node = (Node *)malloc(sizeof(Node));
-    if (new_node == NULL)
-    {
+    Cell *dependant = &table[(int) row * (int) total_cols + (int) col];
+    Node *new_node = (Node *) malloc(sizeof(Node));
+    if (new_node == NULL) {
         printf("Memory allocation failed\n");
         exit(1);
     }
@@ -126,10 +110,8 @@ void addDependant(short source_row, short source_col, short row, short col)
 
     // check if dependant is already present
     Node *temp = cell->head_dependant;
-    while (temp != NULL)
-    {
-        if (temp->cell == dependant)
-        {
+    while (temp != NULL) {
+        if (temp->cell == dependant) {
             return;
         }
         temp = temp->next;
@@ -141,35 +123,27 @@ void addDependant(short source_row, short source_col, short row, short col)
     cell->dependant_count++;
 }
 
-void setValue(short row, short col, int value)
-{
-    Cell *cell = &table[(int)row * (int)total_cols + (int)col];
+void setValue(const short row, const short col, const int value) {
+    Cell *cell = &table[(int) row * (int) total_cols + (int) col];
     cell->value = value;
 }
 
 
-void setState(short row, short col, short state)
-{
-    Cell *cell = &table[(int)row * (int)total_cols + (int)col];
+void setState(const short row, const short col, const short state) {
+    Cell *cell = &table[(int) row * (int) total_cols + (int) col];
     cell->state = state;
 }
 
-void deleteDependant(short sorce_row, short source_col, short target_row, short target_col)
-{
-    Cell *source = &table[(int)sorce_row * (int)total_cols + (int)source_col];
+void deleteDependant(const short sorce_row, const short source_col, const short target_row, const short target_col) {
+    Cell *source = &table[(int) sorce_row * (int) total_cols + (int) source_col];
     Node *temp = source->head_dependant;
     Node *prev = NULL;
 
-    while (temp != NULL)
-    {
-        if (temp->cell->row == target_row && temp->cell->col == target_col)
-        {
-            if (prev == NULL)
-            {
+    while (temp != NULL) {
+        if (temp->cell->row == target_row && temp->cell->col == target_col) {
+            if (prev == NULL) {
                 source->head_dependant = temp->next;
-            }
-            else
-            {
+            } else {
                 prev->next = temp->next;
             }
             free(temp);
@@ -179,9 +153,8 @@ void deleteDependant(short sorce_row, short source_col, short target_row, short 
         temp = temp->next;
     }
     source->dependant_count--;
-    
 }
-Cell *getCell(short row, short col)
-{
-    return &table[(int)row * (int)total_cols + (int)col];
+
+Cell *getCell(const short row, const short col) {
+    return &table[(int) row * (int) total_cols + (int) col];
 }

@@ -14,7 +14,7 @@ void markDirty(Cell *cell) {
 
 void cleanCell(Cell *cell);
 
-int getValue(short row, short col) {
+int getValue(const short row, const short col) {
     Cell *cell = getCell(row, col);
     if (cell->state == 0) {
         return cell->value;
@@ -24,7 +24,7 @@ int getValue(short row, short col) {
     }
 }
 
-int functionCompute(short type, Range range) {
+int functionCompute(const short type, const Range range) {
     int ans;
     if (type == 0) {
         ans = getValue(range.start_row, range.start_col);
@@ -162,7 +162,7 @@ void cleanCell(Cell *cell) {
     return;
 }
 
-void setValueExpression(short row, short col, Value value) {
+void setValueExpression(const short row, const short col, const Value value) {
     Cell *cell = getCell(row, col);
     Expression oldFormula = cell->formula;
     Cell **dependencies = cell->dependencies;
@@ -190,7 +190,7 @@ void setValueExpression(short row, short col, Value value) {
     markDirty(cell);
 }
 
-void setArithmeticExpression(short row, short col, Value value1, Value value2, short operation) {
+void setArithmeticExpression(const short row, const short col, const Value value1, const Value value2, const short operation) {
     Cell *cell = getCell(row, col);
     Expression oldFormula = cell->formula;
 
@@ -226,7 +226,7 @@ void setArithmeticExpression(short row, short col, Value value1, Value value2, s
     markDirty(cell);
 }
 
-void setFunctionExpression(short row, short col, short type, Range range) {
+void setFunctionExpression(const short row, const short col, const short type, const Range range) {
     Cell *cell = getCell(row, col);
     Expression oldFormula = cell->formula;
 
