@@ -36,8 +36,7 @@ void initExpression(Expression *formula)
     value.type = 0;
     value.value = 0;
     formula->value1 = value;
-    
-    
+
     formula->value2 = value;
     formula->operation = 0;
     Function function;
@@ -112,6 +111,12 @@ void addDependant(short source_row, short source_col, short row, short col)
         exit(1);
     }
 
+    // if (source_row == row && source_col == col)
+    // {
+    //     printf("Circular dependency\n");
+    //     exit(1);
+    // }
+
     Cell *cell = &table[(int)source_row * (int)total_cols + (int)source_col];
 
     Cell *dependant = &table[(int)row * (int)total_cols + (int)col];
@@ -147,7 +152,6 @@ void setValue(short row, short col, int value)
     cell->value = value;
 }
 
-
 void setState(short row, short col, short state)
 {
     Cell *cell = &table[(int)row * (int)total_cols + (int)col];
@@ -179,7 +183,6 @@ void deleteDependant(short sorce_row, short source_col, short target_row, short 
         temp = temp->next;
     }
     source->dependant_count--;
-    
 }
 Cell *getCell(short row, short col)
 {

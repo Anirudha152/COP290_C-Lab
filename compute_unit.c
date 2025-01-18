@@ -6,7 +6,12 @@
 void markDirty(Cell *cell)
 {
 
-    cell->state = 1;
+    if (cell->state == 4)
+    {
+        printf("Circular dependency\n");
+        exit(1);
+    }
+    cell->state = 4;
     Node *temp = cell->head_dependant;
     while (temp != NULL)
     {
@@ -14,6 +19,7 @@ void markDirty(Cell *cell)
         markDirty(temp->cell);
         temp = temp->next;
     }
+    cell->state = 1;
 }
 void cleanCell(Cell *cell);
 int getValue(short row, short col)
@@ -263,13 +269,40 @@ void setArithmeticExpression(short row, short col, Value value1, Value value2, s
     oldFormula.value2 = value2;
     oldFormula.operation = operation;
 
-    short rows[2] = {value1.cell->row, value2.cell->row};
-    short cols[2] = {value1.cell->col, value2.cell->col};
+    if (value1.type == 1)
+        addDependant(value1.cell->row, value1.cell->col, row, col);
+    if (value2.type == 1)
+        addDependant(value2.cell->row, value2.cell->col, row, col);
 
-    addDependant(value1.cell->row, value1.cell->col, row, col);
-    addDependant(value2.cell->row, value2.cell->col, row, col);
+    if (value1.type == 0)
+    {
+        if (value2.type == 0)
+        {
+            free(cell->dependencies);
+        }
+        else
+        {
+            short rows[1] = {value2.cell->row};
+            short cols[1] = {value2.cell->col};
+            updateDependencies(rows, cols, 1, row, col);
+        }
+    }
+    else
+    {
+        if (value2.type == 0)
+        {
+            short rows[1] = {value1.cell->row};
+            short cols[1] = {value1.cell->col};
+            updateDependencies(rows, cols, 1, row, col);
+        }
+        else
+        {
+            short rows[2] = {value1.cell->row, value2.cell->row};
+            short cols[2] = {value1.cell->col, value2.cell->col};
+            updateDependencies(rows, cols, 2, row, col);
+        }
+    }
 
-    updateDependencies(rows, cols, 2, row, col);
     cell->formula = oldFormula;
 
     markDirty(cell);
