@@ -3,440 +3,271 @@
 #include <string.h>
 #include <time.h>
 #include <ctype.h>
-#include "primary_storage.h"
+#include "constants.h"
+#include "cell_indexing.h"
+#include "compute_unit.h"
+#include "draw.h"
+#include "user_interface.h"
 
-#define TOTAL_ROWS 999
-#define TOTAL_COLS 18276
-#define MIN_CELL_WIDTH 4
-#define MAX_CELL_WIDTH 12
-#define CMD_BUFFER_SIZE 256
-#define INPUT_BUFFER_SIZE 64
-#define SCROLL_AMOUNT 10
-#define MAX_COL_LABEL 4
+int tot_rows;
+int tot_cols;
 
-typedef struct
-{
-    short start_row;
-    short start_col;
-    short visible_rows;
-    short visible_cols;
-    short cell_width;
-} Viewport;
+void add_to_history(const Command *com) {
+    int index = (state->cmd_history_start + state->cmd_history_count) % CMD_HISTORY_SIZE;
 
-typedef struct
-{
-    short row;
-    short col;
-    clock_t time;
-} LastEdit;
+    if (state->cmd_history_count < CMD_HISTORY_SIZE) {
+        state->cmd_history_count++;
+    } else {
+        state->cmd_history_start = (state->cmd_history_start + 1) % CMD_HISTORY_SIZE;
+    }
 
-typedef struct
-{
-    WINDOW *main_win;
-    WINDOW *cmd_win;
-    short curr_row;
-    short curr_col;
-    short mode;
-    char cmd_buffer[CMD_BUFFER_SIZE];
-    short cmd_pos;
-    double last_cmd_time;
-    LastEdit last_edit;
-    Viewport viewport;
-} SpreadsheetState;
+    strncpy(state->cmd_history[index].command, com->command, CMD_BUFFER_SIZE - 1);
+    state->cmd_history[index].time_taken = com->time_taken;
+    state->cmd_history[index].status = com->status;
+    if (com->error_msg[0] != '\0') {
+        strncpy(state->cmd_history[index].error_msg, com->error_msg, 63);
+    } else {
+        state->cmd_history[index].error_msg[0] = '\0';
+    }
+}
 
-typedef enum
-{
-    GRID_MODE,
-    COMMAND_MODE
-} Mode;
+void init_spreadsheet() {
+    state = malloc(sizeof(DisplayState));
+    if (!state) return;
 
-SpreadsheetState *init_spreadsheet()
-{
-    SpreadsheetState *state = malloc(sizeof(SpreadsheetState));
-    if (!state)
-        return NULL;
-
-    initStorage(TOTAL_ROWS, TOTAL_COLS);
+    initStorage(tot_rows, tot_cols);
 
     short max_y, max_x;
     getmaxyx(stdscr, max_y, max_x);
-    state->main_win = newwin(max_y - 3, max_x, 0, 0);
-    state->cmd_win = newwin(3, max_x, max_y - 3, 0);
-    keypad(state->main_win, TRUE);
-    keypad(state->cmd_win, TRUE);
+
+    state->grid_win = newwin(VIEWPORT_ROWS + 4, max_x, 0, 0);
+    state->status_win = newwin(7, max_x, VIEWPORT_ROWS + 4, 0);
+    state->command_win = newwin(CMD_HISTORY_SIZE + 1, max_x, max_y - (CMD_HISTORY_SIZE + 1), 0);
+    // state->debug_win = newwin(5, max_x, VIEWPORT_ROWS + 12, 0);
+
+    keypad(state->grid_win, TRUE);
+    keypad(state->command_win, TRUE);
 
     state->curr_row = 0;
     state->curr_col = 0;
-    state->mode = GRID_MODE;
+    state->mode = INTERACTIVE_MODE;
     state->cmd_pos = 0;
-    state->cmd_buffer[0] = '\0';
+    state->command_input[0] = '\0';
     state->last_cmd_time = 0.0;
-    state->last_edit = (LastEdit){-1, -1, 0};
-    state->viewport = (Viewport){
+    state->last_edit = (LastEdit) {-1, -1, 0};
+    state->viewport = (Viewport) {
         .start_row = 0,
         .start_col = 0,
-        .visible_rows = 10,
-        .visible_cols = 10,
-        .cell_width = 8};
-
-    return state;
+        .visible_rows = VIEWPORT_ROWS,
+        .visible_cols = VIEWPORT_ROWS,
+        .cell_width = 8
+    };
+    state->cmd_history_count = 0;
+    state->cmd_history_start = 0;
 }
 
-void cleanup_spreadsheet(SpreadsheetState *state)
-{
-    if (state)
-    {
-        delwin(state->main_win);
-        delwin(state->cmd_win);
+void cleanup_spreadsheet() {
+    if (state) {
+        delwin(state->grid_win);
+        delwin(state->status_win);
+        delwin(state->command_win);
         free(state);
     }
     endwin();
 }
 
-void index_to_excel_col(const short col, char *buffer)
-{
-    int len = 0;
-    if (col >= 26)
-    {
-        const int first = col / 26 - 1;
-        const int second = col % 26;
-        if (first >= 26)
-        {
-            buffer[len++] = (char)('A' + (first / 26 - 1));
-            buffer[len++] = (char)('A' + (first % 26));
-        }
-        else
-        {
-            buffer[len++] = (char)('A' + first);
-        }
-        buffer[len++] = (char)('A' + second);
+void move_cursor(const short delta_row, const short delta_col) {
+    const short new_row = max(min(state->curr_row + delta_row, tot_rows - 1), 0);
+    const short new_col = max(min(state->curr_col + delta_col, tot_cols - 1), 0);
+    if (new_row < state->viewport.start_row) {
+        state->viewport.start_row = new_row;
+    } else if (new_row >= state->viewport.start_row + state->viewport.visible_rows) {
+        state->viewport.start_row = new_row - state->viewport.visible_rows + 1;
     }
-    else
-    {
-        buffer[len++] = (char)('A' + col);
+    if (new_col < state->viewport.start_col) {
+        state->viewport.start_col = new_col;
+    } else if (new_col >= state->viewport.start_col + state->viewport.visible_cols) {
+        state->viewport.start_col = new_col - state->viewport.visible_cols + 1;
     }
-    buffer[len] = '\0';
+    state->curr_row = new_row;
+    state->curr_col = new_col;
 }
 
-short excel_col_to_index(const char *col)
-{
-    short result = 0;
-    const unsigned int len = strlen(col);
-    for (int i = 0; i < len - 1; i++)
-    {
-        result = (result + (col[i] - 'A' + 1)) * 26;
-    }
-    result += col[len - 1] - 'A';
-    return result;
+void move_viewport(const short delta_row, const short delta_col) {
+    const short new_start_row = max(min(state->viewport.start_row + delta_row, tot_rows - state->viewport.visible_rows), 0);
+    const short new_start_col = max(min(state->viewport.start_col + delta_col, tot_cols - state->viewport.visible_cols), 0);
+    state->viewport.start_row = new_start_row;
+    state->viewport.start_col = new_start_col;
 }
 
-void move_cursor(SpreadsheetState *state, const short delta_row, const short delta_col)
-{
-    const short new_row = state->curr_row + delta_row;
-    const short new_col = state->curr_col + delta_col;
-
-    if (new_row >= 0 && new_row < TOTAL_ROWS)
-    {
-        state->curr_row = new_row;
-        if (new_row < state->viewport.start_row)
-            state->viewport.start_row = new_row;
-        else if (new_row >= state->viewport.start_row + state->viewport.visible_rows)
-            state->viewport.start_row = new_row - state->viewport.visible_rows + 1;
-    }
-
-    if (new_col >= 0 && new_col < TOTAL_COLS)
-    {
-        state->curr_col = new_col;
-        if (new_col < state->viewport.start_col)
-            state->viewport.start_col = new_col;
-        else if (new_col >= state->viewport.start_col + state->viewport.visible_cols)
-            state->viewport.start_col = new_col - state->viewport.visible_cols + 1;
-    }
+void resize_cells(const short delta) {
+    state->viewport.cell_width = max(min(state->viewport.cell_width + delta, MAX_CELL_WIDTH), MIN_CELL_WIDTH);
 }
 
-void scroll_viewport(SpreadsheetState *state, const short delta_row, const short delta_col)
-{
-    const short new_start_row = state->viewport.start_row + delta_row;
-    const short new_start_col = state->viewport.start_col + delta_col;
-
-    if (new_start_row >= 0 && new_start_row <= TOTAL_ROWS - state->viewport.visible_rows)
-        state->viewport.start_row = new_start_row;
-
-    if (new_start_col >= 0 && new_start_col <= TOTAL_COLS - state->viewport.visible_cols)
-        state->viewport.start_col = new_start_col;
-}
-
-void resize_cells(SpreadsheetState *state, const short delta)
-{
-    const short new_width = state->viewport.cell_width + delta;
-    if (new_width >= MIN_CELL_WIDTH && new_width <= MAX_CELL_WIDTH)
-    {
-        state->viewport.cell_width = new_width;
-    }
-}
-
-void process_expression(SpreadsheetState *state, const char *input, const short row, const short col)
-{
-    const clock_t start = clock();
-
-    const int value = atoi(input);
-    setValue(row, col, value);
-    setState(row, col, 0);
-
-    state->last_edit.row = row;
-    state->last_edit.col = col;
-    state->last_edit.time = clock();
-
-    state->last_cmd_time = ((double)(clock() - start)) / CLOCKS_PER_SEC * 1000;
-}
-
-void handle_movement_command(SpreadsheetState *state, const char cmd)
-{
-    switch (cmd)
-    {
-    case 'w':
-    case 'W':
-        scroll_viewport(state, -SCROLL_AMOUNT, 0);
+void handle_movement_command(const char cmd) {
+    switch (cmd) {
+        case 'w':
+        case 'W':
+            move_viewport(-SCROLL_AMOUNT, 0);
         break;
-    case 's':
-    case 'S':
-        scroll_viewport(state, SCROLL_AMOUNT, 0);
+        case 's':
+        case 'S':
+            move_viewport(SCROLL_AMOUNT, 0);
         break;
-    case 'a':
-    case 'A':
-        scroll_viewport(state, 0, -SCROLL_AMOUNT);
+        case 'a':
+        case 'A':
+            move_viewport(0, -SCROLL_AMOUNT);
         break;
-    case 'd':
-    case 'D':
-        scroll_viewport(state, 0, SCROLL_AMOUNT);
+        case 'd':
+        case 'D':
+            move_viewport(0, SCROLL_AMOUNT);
         break;
-    default:
-        break;
+        default:
+            break;
     }
 }
 
-void parse_cell_reference(const char *ref, short *row, short *col)
-{
-    char col_str[MAX_COL_LABEL] = {0};
-    int i = 0;
-
-    while (isalpha(ref[i]) && i < MAX_COL_LABEL - 1)
-    {
-        col_str[i] = (char)toupper(ref[i]);
-        i++;
-    }
-    col_str[i] = '\0';
-
-    *col = excel_col_to_index(col_str);
-    *row = atoi(ref + i) - 1;
-}
-
-void process_command(SpreadsheetState *state)
-{
-    const clock_t start = clock();
-
-    if (strlen(state->cmd_buffer) == 1 && strchr("wasdWASD", state->cmd_buffer[0]))
-    {
-        handle_movement_command(state, state->cmd_buffer[0]);
-    }
-    else
-    {
-        char *equals = strchr(state->cmd_buffer, '=');
-        if (equals)
-        {
+void process_command() {
+    remove_spaces(state->command_input);
+    if (strlen(state->command_input) == 1 && strchr("wasdWASD", state->command_input[0])) {
+        handle_movement_command(state->command_input[0]);
+    } else {
+        char *equals = strchr(state->command_input, '=');
+        const int equal_count = count_char(state->command_input, '=');
+        if (equals && equal_count == 1) {
             *equals = '\0';
             short row, col;
-            parse_cell_reference(state->cmd_buffer, &row, &col);
-            if (row >= 0 && row < TOTAL_ROWS && col >= 0 && col < TOTAL_COLS)
-            {
-                process_expression(state, equals + 1, row, col);
+            parse_cell_reference(state->command_input, &row, &col);
+            if (row >= 0 && row < tot_rows && col >= 0 && col < tot_cols) {
+                Command com = process_expression(equals + 1, row, col, state->viewport.start_row, state->viewport.start_col);
+                add_to_history(&com);
             }
             *equals = '=';
+        } else {
+            // handle error here
         }
     }
-
-    state->last_cmd_time = (double)(clock() - start) / CLOCKS_PER_SEC * 1000;
-    state->cmd_buffer[0] = '\0';
-    state->cmd_pos = 0;
 }
 
-void draw_cell(WINDOW *win, const int value, const short y, const short x, const short width, const int attrs)
-{
-    if (attrs)
-        wattron(win, attrs);
-    mvwprintw(win, y, x, "%-*d", width - 1, value);
-    if (attrs)
-        wattroff(win, attrs);
-}
-
-void draw_grid(const SpreadsheetState *state)
-{
-    wclear(state->main_win);
-
-    for (short j = 0; j < state->viewport.visible_cols; j++)
-    {
-        const short actual_col = j + state->viewport.start_col;
-        char col_label[MAX_COL_LABEL];
-        index_to_excel_col(actual_col, col_label);
-        mvwprintw(state->main_win, 0, (j + 1) * state->viewport.cell_width, "%s", col_label);
-    }
-
-    for (short i = 0; i < state->viewport.visible_rows; i++)
-    {
-        const short actual_row = i + state->viewport.start_row;
-        mvwprintw(state->main_win, i + 1, 0, "%4d", actual_row + 1);
-
-        for (short j = 0; j < state->viewport.visible_cols; j++)
-        {
-            const short actual_col = j + state->viewport.start_col;
-            const short x = (j + 1) * state->viewport.cell_width;
-            const short y = i + 1;
-            const int value = cellValue(actual_row, actual_col);
-
-            int attrs = 0;
-            if (state->mode == GRID_MODE && actual_row == state->curr_row && actual_col == state->curr_col)
-                attrs |= A_REVERSE;
-            if (actual_row == state->last_edit.row && actual_col == state->last_edit.col)
-                attrs |= COLOR_PAIR(1);
-
-            draw_cell(state->main_win, value, y, x, state->viewport.cell_width, attrs);
+void handle_interactive_input(const int ch) {
+    switch (ch) {
+        case '\t':
+            state->mode = COMMAND_MODE;
+        break;
+        case 'w':
+            move_cursor(-1, 0);
+        break;
+        case 's':
+            move_cursor(1, 0);
+        break;
+        case 'a':
+            move_cursor(0, -1);
+        break;
+        case 'd':
+            move_cursor(0, 1);
+        break;
+        case 'W':
+            move_viewport(-1, 0);
+        break;
+        case 'S':
+            move_viewport(1, 0);
+        break;
+        case 'A':
+            move_viewport(0, -1);
+        break;
+        case 'D':
+            move_viewport(0, 1);
+        break;
+        case '+':
+            resize_cells(1);
+        break;
+        case '-':
+            resize_cells(-1);
+        break;
+        case '\n': {
+            char input[INPUT_BUFFER_SIZE] = {0};
+            echo();
+            mvwprintw(state->grid_win, 12, 0, "[");
+            wattron(state->grid_win, COLOR_PAIR(4));
+            wprintw(state->grid_win, "Expression");
+            wattroff(state->grid_win, COLOR_PAIR(4));
+            wprintw(state->grid_win, "]> ");
+            wrefresh(state->grid_win);
+            wgetnstr(state->grid_win, input, INPUT_BUFFER_SIZE - 1);
+            noecho();
+            const Command com = process_expression(input, state->curr_row, state->curr_col, state->viewport.start_row, state->viewport.start_col);
+            add_to_history(&com);
+            break;
         }
-    }
-
-    char curr_col_label[MAX_COL_LABEL];
-    index_to_excel_col(state->curr_col, curr_col_label);
-    mvwprintw(state->main_win, state->viewport.visible_rows + 2, 0,
-              "Cell: %s%d | Mode: %s | Last cmd: %.1fms | Tab: switch mode | Enter: edit | Backspace: clear",
-              curr_col_label, state->curr_row + 1,
-              state->mode == GRID_MODE ? "Grid" : "Command",
-              state->last_cmd_time);
-
-    wrefresh(state->main_win);
-}
-
-void draw_command_line(SpreadsheetState *state)
-{
-    wclear(state->cmd_win);
-    mvwprintw(state->cmd_win, 0, 0, "[%.1f] > %s", state->last_cmd_time, state->cmd_buffer);
-    wrefresh(state->cmd_win);
-}
-
-void handle_grid_input(SpreadsheetState *state, const int ch)
-{
-    switch (ch)
-    {
-    case '\t':
-        state->mode = COMMAND_MODE;
-        break;
-    case 'w':
-    case 'W':
-        move_cursor(state, -1, 0);
-        break;
-    case 's':
-    case 'S':
-        move_cursor(state, 1, 0);
-        break;
-    case 'a':
-    case 'A':
-        move_cursor(state, 0, -1);
-        break;
-    case 'd':
-    case 'D':
-        move_cursor(state, 0, 1);
-        break;
-    case '+':
-        resize_cells(state, 1);
-        break;
-    case '-':
-        resize_cells(state, -1);
-        break;
-    case '\n':
-    {
-        char input[INPUT_BUFFER_SIZE] = {0};
-        echo();
-        mvwprintw(state->main_win, state->viewport.visible_rows + 3, 0, "Enter value: ");
-        wrefresh(state->main_win);
-        wgetnstr(state->main_win, input, INPUT_BUFFER_SIZE - 1);
-        noecho();
-        process_expression(state, input, state->curr_row, state->curr_col);
-        break;
-    }
-    case KEY_BACKSPACE:
-    case 127:
-        setValue(state->curr_row, state->curr_col, 0);
-        setState(state->curr_row, state->curr_col, 0);
-        state->last_edit.row = state->curr_row;
-        state->last_edit.col = state->curr_col;
-        state->last_edit.time = clock();
-        break;
-    default:
-        break;
-    }
-}
-
-void handle_command_input(SpreadsheetState *state, const int ch)
-{
-    switch (ch)
-    {
-    case '\t':
-        state->mode = GRID_MODE;
-        break;
-    case '\n':
-        process_command(state);
-        break;
-    case KEY_BACKSPACE:
-    case 127:
-        if (state->cmd_pos > 0)
-        {
-            state->cmd_buffer[--state->cmd_pos] = '\0';
+        case KEY_BACKSPACE:
+        case 127: {
+            Value val = {0, 0, NULL};
+            setValueExpression(state->curr_row, state->curr_col, val);
+            state->last_edit.row = state->curr_row;
+            state->last_edit.col = state->curr_col;
+            state->last_edit.time = clock();
+            break;
         }
-        break;
-    default:
-        if (state->cmd_pos < CMD_BUFFER_SIZE - 1 && ch >= 32 && ch <= 126)
-        {
-            state->cmd_buffer[state->cmd_pos++] = (char)ch;
-            state->cmd_buffer[state->cmd_pos] = '\0';
-        }
-        break;
+        default:
+            break;
     }
 }
 
-int main()
-{
+void handle_command_input(const int ch) {
+    switch (ch) {
+        case '\t':
+            state->mode = INTERACTIVE_MODE;
+            break;
+        case '\n':
+            process_command();
+            break;
+        case KEY_BACKSPACE:
+        case 127:
+            if (state->cmd_pos > 0) {
+                state->command_input[--state->cmd_pos] = '\0';
+            }
+            break;
+        default:
+            if (state->cmd_pos < CMD_BUFFER_SIZE - 1 && ch >= 32 && ch <= 126) {
+                state->command_input[state->cmd_pos++] = (char) ch;
+                state->command_input[state->cmd_pos] = '\0';
+            }
+            break;
+    }
+}
+
+void initialize() {
     initscr();
     start_color();
     init_pair(1, COLOR_BLUE, COLOR_BLACK);
+    init_pair(2, COLOR_GREEN, COLOR_BLACK);
+    init_pair(3, COLOR_RED, COLOR_BLACK);
+    init_pair(4, COLOR_MAGENTA, COLOR_BLACK);
     cbreak();
     noecho();
     keypad(stdscr, TRUE);
-
-    SpreadsheetState *state = init_spreadsheet();
-    if (!state)
-    {
+    init_spreadsheet();
+    if (!state) {
         endwin();
         fprintf(stderr, "Failed to initialize spreadsheet\n");
-        return 1;
     }
+}
 
-    while (1)
-    {
-        draw_grid(state);
-        draw_command_line(state);
-
+void run_user_interface(const short total_rows, const short total_cols) {
+    tot_rows = total_rows;
+    tot_cols = total_cols;
+    initialize();
+    while (1) {
+        draw();
         const int ch = getch();
         if (ch == 'q' || ch == 'Q')
             break;
 
-        if (state->mode == GRID_MODE)
-        {
-            handle_grid_input(state, ch);
-        }
-        else
-        {
-            handle_command_input(state, ch);
+        if (state->mode == INTERACTIVE_MODE) {
+            handle_interactive_input(ch);
+        } else {
+            handle_command_input(ch);
         }
     }
-
     cleanup_spreadsheet(state);
-    return 0;
 }

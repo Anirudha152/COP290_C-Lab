@@ -1,16 +1,24 @@
-#!/bin/bash
+CC = gcc
+CFLAGS = -c
+LDFLAGS = -lncurses -lm
+TARGET = sheet
+SOURCES = user_interface.c \
+          draw.c \
+          command_processing.c \
+          compute_unit.c \
+          cell_indexing.c \
+          constants.c \
+          primary_storage.c \
+          main.c
 
-compile:
-	gcc -c primary_storage.c -o primary_storage.o
-	gcc -c user_interface.c -o user_interface.o -lncurses
-	gcc primary_storage.o user_interface.o -o spreadsheet -lncurses
+OBJECTS = $(SOURCES:.c=.o)
+$(TARGET): $(OBJECTS)
+	$(CC) $(OBJECTS) -o $(TARGET) $(LDFLAGS)
 	rm *.o
 
-aks:main.o
-	gcc -c primary_storage.c -o primary_storage.o
-	gcc -c main.c -o main.o
-	gcc primary_storage.o main.o -o aks
-	rm *.o
+%.o: %.c
+	$(CC) $(CFLAGS) $<
 
-run:
-	./spreadsheet
+.PHONY: clean
+clean:
+	rm -f $(TARGET) $(OBJECTS)
