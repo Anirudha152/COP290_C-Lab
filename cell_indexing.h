@@ -5,5 +5,5 @@
 bool cellWithinExpression(const Expression* expr, const short row, const short col);
 short col_label_to_index(const char *col);
 void col_index_to_label(const short col, char *buffer);
-void parse_cell_reference(const char *ref, short *row, short *col);
+int parse_cell_reference(const char *ref, short *row, short *col);
 #endif

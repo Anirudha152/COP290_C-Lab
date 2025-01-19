@@ -3,11 +3,8 @@
 #include <math.h>
 #include "primary_storage.h"
 
-void markDirty(Cell *cell)
-{
-
-    if (cell->state == 4)
-    {
+void markDirty(Cell *cell) {
+    if (cell->state == 4) {
         printf("Circular dependency\n");
         exit(1);
     }
@@ -167,7 +164,6 @@ void cleanCell(Cell *cell) {
     }
 
     cell->state = 0;
-    return;
 }
 
 void setValueExpression(const short row, const short col, const Value value) {
@@ -198,7 +194,8 @@ void setValueExpression(const short row, const short col, const Value value) {
     markDirty(cell);
 }
 
-void setArithmeticExpression(const short row, const short col, const Value value1, const Value value2, const short operation) {
+void setArithmeticExpression(const short row, const short col, const Value value1, const Value value2,
+                             const short operation) {
     Cell *cell = getCell(row, col);
     Expression oldFormula = cell->formula;
 
@@ -218,29 +215,20 @@ void setArithmeticExpression(const short row, const short col, const Value value
     if (value2.type == 1)
         addDependant(value2.cell->row, value2.cell->col, row, col);
 
-    if (value1.type == 0)
-    {
-        if (value2.type == 0)
-        {
+    if (value1.type == 0) {
+        if (value2.type == 0) {
             free(cell->dependencies);
-        }
-        else
-        {
+        } else {
             short rows[1] = {value2.cell->row};
             short cols[1] = {value2.cell->col};
             updateDependencies(rows, cols, 1, row, col);
         }
-    }
-    else
-    {
-        if (value2.type == 0)
-        {
+    } else {
+        if (value2.type == 0) {
             short rows[1] = {value1.cell->row};
             short cols[1] = {value1.cell->col};
             updateDependencies(rows, cols, 1, row, col);
-        }
-        else
-        {
+        } else {
             short rows[2] = {value1.cell->row, value2.cell->row};
             short cols[2] = {value1.cell->col, value2.cell->col};
             updateDependencies(rows, cols, 2, row, col);

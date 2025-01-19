@@ -53,7 +53,6 @@ void init_spreadsheet() {
     state->mode = INTERACTIVE_MODE;
     state->cmd_pos = 0;
     state->command_input[0] = '\0';
-    state->last_cmd_time = 0.0;
     state->last_edit = (LastEdit) {-1, -1, 0};
     state->viewport = (Viewport) {
         .start_row = 0,
@@ -128,6 +127,9 @@ void handle_movement_command(const char cmd) {
 }
 
 void process_command() {
+    char command_str[CMD_BUFFER_SIZE];
+    strcpy(command_str, state->command_input);
+    to_upper(state->command_input);
     remove_spaces(state->command_input);
     if (strlen(state->command_input) == 1 && strchr("wasdWASD", state->command_input[0])) {
         handle_movement_command(state->command_input[0]);
@@ -135,18 +137,32 @@ void process_command() {
         char *equals = strchr(state->command_input, '=');
         const int equal_count = count_char(state->command_input, '=');
         if (equals && equal_count == 1) {
+            int equal_pos = equals - state->command_input;
             *equals = '\0';
             short row, col;
-            parse_cell_reference(state->command_input, &row, &col);
-            if (row >= 0 && row < tot_rows && col >= 0 && col < tot_cols) {
+            int resp = parse_cell_reference(state->command_input, &row, &col);
+            if (!resp || equal_pos != resp) {
+                Command com = {.status = 0, .time_taken = 0.0, .command = "", .error_msg = "Invalid cell reference"};
+                strcpy(com.command, command_str);
+                add_to_history(&com);
+            } else if (row >= 0 && row < tot_rows && col >= 0 && col < tot_cols) {
                 Command com = process_expression(equals + 1, row, col, state->viewport.start_row, state->viewport.start_col);
+                strcpy(com.command, command_str);
+                add_to_history(&com);
+            } else {
+                Command com = {.status = 0, .time_taken = 0.0, .command = "", .error_msg = "Invalid cell reference"};
+                strcpy(com.command, command_str);
                 add_to_history(&com);
             }
             *equals = '=';
         } else {
-            // handle error here
+            Command com = {.status = 0, .time_taken = 0.0, .command = "", .error_msg = "Command not recognized"};
+            strcpy(com.command, command_str);
+            add_to_history(&com);
         }
     }
+    state->command_input[0] = '\0';
+    state->cmd_pos = 0;
 }
 
 void handle_interactive_input(const int ch) {
@@ -196,6 +212,7 @@ void handle_interactive_input(const int ch) {
             wgetnstr(state->grid_win, input, INPUT_BUFFER_SIZE - 1);
             noecho();
             const Command com = process_expression(input, state->curr_row, state->curr_col, state->viewport.start_row, state->viewport.start_col);
+
             add_to_history(&com);
             break;
         }

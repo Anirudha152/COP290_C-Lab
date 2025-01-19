@@ -56,16 +56,35 @@ void col_index_to_label(const short col, char *buffer) {
     buffer[len] = '\0';
 }
 
-void parse_cell_reference(const char *ref, short *row, short *col) {
+int parse_cell_reference(const char *ref, short *row, short *col) {
     char col_str[MAX_COL_LABEL] = {0};
     int i = 0;
-
-    while (isalpha(ref[i]) && i < MAX_COL_LABEL - 1) {
+    int col_ = 0;
+    while (isalpha(ref[i]) && col_ * 26 + (toupper(ref[i]) - 'A' + 1) <= total_cols) {
         col_str[i] = (char) toupper(ref[i]);
         i++;
     }
+    if (!isdigit(ref[i])) {
+        *col = -1;
+        *row = -1;
+        return 0;
+    }
+    int row_ = 0;
+    int at_least_one_digit = 0;
+    while (isdigit(ref[i]) && row_ * 10 + (ref[i] - '0') <= total_rows) {
+        row_ = row_ * 10 + (ref[i] - '0');
+        at_least_one_digit = 1;
+        i++;
+    }
+    if (!at_least_one_digit) {
+        *col = -1;
+        *row = -1;
+        return 0;
+    }
+
     col_str[i] = '\0';
 
     *col = col_label_to_index(col_str);
-    *row = atoi(ref + i) - 1;
+    *row = row_ - 1;
+    return i;
 }

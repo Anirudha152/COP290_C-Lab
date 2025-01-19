@@ -32,7 +32,6 @@ typedef struct {
     Mode mode;
     char command_input[CMD_BUFFER_SIZE];
     short cmd_pos;
-    double last_cmd_time;
     LastEdit last_edit;
     Viewport viewport;
     Command cmd_history[CMD_HISTORY_SIZE];

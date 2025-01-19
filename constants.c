@@ -1,5 +1,6 @@
 #include "constants.h"
 #include <string.h>
+#include <ctype.h>
 
 int max(int a, int b) {
     return a > b ? a : b;
@@ -26,4 +27,10 @@ int count_char(const char *s, const char c) {
         }
     }
     return co;
+}
+
+void to_upper(char *s) {
+    for (int i = 0; i < strlen(s); i++) {
+        s[i] = toupper(s[i]);
+    }
 }

@@ -11,5 +11,6 @@
 int max(int a, int b);
 int min(int a, int b);
 void remove_spaces(char *s);
+void to_upper(char *s);
 int count_char(const char *s, const char c);
 #endif

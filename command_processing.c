@@ -10,23 +10,49 @@
 #include "command_processing.h"
 
 
-Value parse_value(const char *expr, char **end)  {
-    Value val = {0, 0, NULL};
+Value parse_value(const char *expr, char **end, short mode)  { // mode = 0 -> value at the start of function, mode = 1 -> value at the end of function, mode = 2 -> value at the start of arithmetic expression, mode = 3 -> value at the end of arithmetic expression
+    Value val = {2, 0, NULL};
     while (*expr == ' ') expr++;
 
     if (isdigit(*expr) || *expr == '-') {
         val.type = 0;
         val.value = strtol(expr, end, 10);
+        if (mode == 1 && **end != ')') {
+            val.type = 2;
+            return val;
+        }
+        if (mode == 2 && **end != '+' && **end != '-' && **end != '*' && **end != '/') {
+            val.type = 2;
+            return val;
+        }
+        if (mode == 3 && **end != '\0') {
+            val.type = 2;
+            return val;
+        }
         return val;
     }
 
     if (isalpha(*expr)) {
         val.type = 1;
         short row, col;
-        parse_cell_reference(expr, &row, &col);
-
+        int pos = parse_cell_reference(expr, &row, &col);
+        if (!pos) {
+            val.type = 2;
+            return val;
+        }
+        if (mode == 1 && *(expr+pos) != ')') {
+            val.type = 2;
+            return val;
+        }
+        if (mode == 2 && *(expr+pos) != '+' && *(expr+pos) != '-' && *(expr+pos) != '*' && *(expr+pos) != '/') {
+            val.type = 2;
+            return val;
+        }
+        if (mode == 3 && *(expr+pos) != '\0') {
+            val.type = 2;
+            return val;
+        }
         val.cell = getCell(row, col);
-
         *end = (char*)expr + strcspn(expr, "+-*/(),:) ");
         return val;
     }
@@ -126,7 +152,7 @@ Command process_expression(char *input, const short row, const short col, const 
     col_index_to_label(col, col_label);
     snprintf(cmd_str, CMD_BUFFER_SIZE, "%s%d=%s", col_label, row + 1, input);
     strcpy(com.command, cmd_str);
-
+    to_upper(input);
     remove_spaces(input);
 
     if (strncmp(input, "MIN(", 4) == 0 || strncmp(input, "MAX(", 4) == 0 ||
@@ -143,26 +169,27 @@ Command process_expression(char *input, const short row, const short col, const 
 
         const char *range_start = strchr(input, '(') + 1;
         if (func_type == 5) {
-            val1 = parse_value(range_start, &end);
+            val1 = parse_value(range_start, &end, 1);
             setValueExpression(row, col, val1);
         } else {
             range = parse_range(range_start, &end);
             setFunctionExpression(row, col, func_type, range);
         }
     } else {
-        val1 = parse_value(input, &end);
-        while (*end == ' ') end++;
+        val1 = parse_value(input, &end, 2);
         if (*end == '+' || *end == '-' || *end == '*' || *end == '/') {
             char op = *end++;
-            val2 = parse_value(end, &end);
+            val2 = parse_value(end, &end, 3);
             short operation = (op == '+') ? 0 : (op == '-') ? 1 : (op == '*') ? 2 : 3;
             setArithmeticExpression(row, col, val1, val2, operation);
         } else {
             setValueExpression(row, col, val1);
         }
     }
-    if ((row >= viewport_row && row < viewport_row + VIEWPORT_ROWS && col >= viewport_col && col < viewport_col + VIEWPORT_ROWS) || (viewport_row == -1 && viewport_col == -1)) {
-        getValue(row, col);
+    for (short i = viewport_row; i < viewport_row + VIEWPORT_ROWS; i++) {
+        for (short j = viewport_col; j < viewport_col + VIEWPORT_ROWS; j++) {
+            getValue(i, j);
+        }
     }
     com.time_taken = ((double)(clock() - start)) / CLOCKS_PER_SEC;
     com.status = 1;

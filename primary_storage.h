@@ -71,4 +71,6 @@ void addDependant(short source_row, short source_col, short row, short col);
 void deleteDependant(short source_row, short source_col, short target_row, short target_col);
 void initExpression(Expression *formula);
 
+extern short total_rows;
+extern short total_cols;
 #endif
