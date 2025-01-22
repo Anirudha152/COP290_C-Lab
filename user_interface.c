@@ -212,7 +212,6 @@ void handle_interactive_input(const int ch) {
             wgetnstr(state->grid_win, input, INPUT_BUFFER_SIZE - 1);
             noecho();
             const Command com = process_expression(input, state->curr_row, state->curr_col, state->viewport.start_row, state->viewport.start_col);
-
             add_to_history(&com);
             break;
         }

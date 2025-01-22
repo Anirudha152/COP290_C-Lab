@@ -22,8 +22,11 @@ bool cellWithinExpression(const Expression* expr, const short row, const short c
         return false;
     }
     if (expr->type == 2) {
-        return expr->function.range.start_row <= row && expr->function.range.end_row >= row &&
+        if (expr->function.type != 5) {
+            return expr->function.range.start_row <= row && expr->function.range.end_row >= row &&
                expr->function.range.start_col <= col && expr->function.range.end_col >= col;
+        }
+        return expr->value1.type == 1 && expr->value1.cell->row == row && expr->value1.cell->col == col;
     }
     return false;
 }

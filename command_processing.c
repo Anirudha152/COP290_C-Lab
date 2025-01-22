@@ -9,6 +9,8 @@
 #include "cell_indexing.h"
 #include "command_processing.h"
 
+#include <math.h>
+
 
 Value parse_value(const char *expr, char **end, short mode)  { // mode = 0 -> value at the start of function, mode = 1 -> value at the end of function, mode = 2 -> value at the start of arithmetic expression, mode = 3 -> value at the end of arithmetic expression
     Value val = {2, 0, NULL};
@@ -21,7 +23,7 @@ Value parse_value(const char *expr, char **end, short mode)  { // mode = 0 -> va
             val.type = 2;
             return val;
         }
-        if (mode == 2 && **end != '+' && **end != '-' && **end != '*' && **end != '/') {
+        if (mode == 2 && **end != '+' && **end != '-' && **end != '*' && **end != '/' && **end != '\0') {
             val.type = 2;
             return val;
         }
@@ -44,7 +46,7 @@ Value parse_value(const char *expr, char **end, short mode)  { // mode = 0 -> va
             val.type = 2;
             return val;
         }
-        if (mode == 2 && *(expr+pos) != '+' && *(expr+pos) != '-' && *(expr+pos) != '*' && *(expr+pos) != '/') {
+        if (mode == 2 && *(expr+pos) != '+' && *(expr+pos) != '-' && *(expr+pos) != '*' && *(expr+pos) != '/' && *(expr+pos) != '\0') {
             val.type = 2;
             return val;
         }
@@ -70,8 +72,24 @@ Range parse_range(const char *expr, char **end) {
     }
 
     short start_row, start_col, end_row, end_col;
-    parse_cell_reference(expr, &start_row, &start_col);
-    parse_cell_reference(colon + 1, &end_row, &end_col);
+    int pos1 = parse_cell_reference(expr, &start_row, &start_col);
+    if (!pos1) {
+        *end = (char*)expr;
+        return range;
+    }
+    if (*(expr + pos1) != ':') {
+        *end = (char*)expr;
+        return range;
+    }
+    int pos2 = parse_cell_reference(colon + 1, &end_row, &end_col);
+    if (!pos2) {
+        *end = (char*)expr;
+        return range;
+    }
+    if (*(colon + 1 + pos2) != ')') {
+        *end = (char*)expr;
+        return range;
+    }
 
     if (start_row > end_row || start_col > end_col) {
         *end = (char*)expr;
@@ -134,15 +152,44 @@ char* get_expression_string(const Expression *expr) {
             snprintf(function_name, 6, "SUM");
         } else if (expr->function.type == 4) {
             snprintf(function_name, 6, "STDEV");
+        } else if (expr->function.type == 5) {
+            snprintf(function_name, 6, "SLEEP");
         }
-        snprintf(buffer, CMD_BUFFER_SIZE, "%s(%s%d:%s%d)", function_name, start_col_label, expr->function.range.start_row + 1, end_col_label, expr->function.range.end_row + 1);
+        if (expr->function.type == 5) {
+            if (expr->value1.type == 0) {
+                snprintf(buffer, CMD_BUFFER_SIZE, "%s(%d)", function_name, expr->value1.value);
+            } else {
+                col_index_to_label(expr->value1.cell->col, start_col_label);
+                snprintf(buffer, CMD_BUFFER_SIZE, "%s(%s%d)", function_name, start_col_label, expr->value1.cell->row + 1);
+            }
+        } else {
+            snprintf(buffer, CMD_BUFFER_SIZE, "%s(%s%d:%s%d)", function_name, start_col_label, expr->function.range.start_row + 1, end_col_label, expr->function.range.end_row + 1);
+        }
     }
 
     return buffer;
 }
 
+double sub_timespec(struct timespec t1, struct timespec t2, struct timespec *td)
+{
+    td->tv_nsec = t2.tv_nsec - t1.tv_nsec;
+    td->tv_sec  = t2.tv_sec - t1.tv_sec;
+    if (td->tv_sec > 0 && td->tv_nsec < 0)
+    {
+        td->tv_nsec += 1000000000;
+        td->tv_sec--;
+    }
+    else if (td->tv_sec < 0 && td->tv_nsec > 0)
+    {
+        td->tv_nsec -= 1000000000;
+        td->tv_sec++;
+    }
+    return (double)td->tv_sec + (double)td->tv_nsec/1000000000;
+}
+
 Command process_expression(char *input, const short row, const short col, const short viewport_row, const short viewport_col) {
-    clock_t start = clock();
+    struct timespec start, finish, delta;
+    clock_gettime(CLOCK_REALTIME, &start);
     char *end;
     Value val1, val2;
     Range range;
@@ -170,16 +217,44 @@ Command process_expression(char *input, const short row, const short col, const 
         const char *range_start = strchr(input, '(') + 1;
         if (func_type == 5) {
             val1 = parse_value(range_start, &end, 1);
-            setValueExpression(row, col, val1);
+            if (val1.type == 2) {
+                clock_gettime(CLOCK_REALTIME, &finish);
+                com.time_taken = sub_timespec(start, finish, &delta);
+                com.status = 0;
+                strcpy(com.error_msg, "Invalid cell reference");
+                return com;
+            }
+            setSleepExpression(row, col, val1);
         } else {
             range = parse_range(range_start, &end);
+            if (range.dimension == 0) {
+                clock_gettime(CLOCK_REALTIME, &finish);
+                com.time_taken = sub_timespec(start, finish, &delta);
+                com.status = 0;
+                strcpy(com.error_msg, "Invalid range");
+                return com;
+            }
             setFunctionExpression(row, col, func_type, range);
         }
     } else {
         val1 = parse_value(input, &end, 2);
+        if (val1.type == 2) {
+            clock_gettime(CLOCK_REALTIME, &finish);
+            com.time_taken = sub_timespec(start, finish, &delta);
+            com.status = 0;
+            strcpy(com.error_msg, "Invalid cell reference");
+            return com;
+        }
         if (*end == '+' || *end == '-' || *end == '*' || *end == '/') {
             char op = *end++;
             val2 = parse_value(end, &end, 3);
+            if (val2.type == 2) {
+                clock_gettime(CLOCK_REALTIME, &finish);
+                com.time_taken = sub_timespec(start, finish, &delta);
+                com.status = 0;
+                strcpy(com.error_msg, "Invalid cell reference");
+                return com;
+            }
             short operation = (op == '+') ? 0 : (op == '-') ? 1 : (op == '*') ? 2 : 3;
             setArithmeticExpression(row, col, val1, val2, operation);
         } else {
@@ -191,7 +266,8 @@ Command process_expression(char *input, const short row, const short col, const 
             getValue(i, j);
         }
     }
-    com.time_taken = ((double)(clock() - start)) / CLOCKS_PER_SEC;
+    clock_gettime(CLOCK_REALTIME, &finish);
+    com.time_taken = sub_timespec(start, finish, &delta);
     com.status = 1;
     return com;
 }

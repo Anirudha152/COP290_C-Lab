@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <math.h>
 #include "primary_storage.h"
 
@@ -92,8 +93,19 @@ int functionCompute(const short type, const Range range) {
 
         ans = sqrt(temp_sq / size);
     }
-
     return ans;
+}
+
+int sleepCompute(const Value value) {
+    if (value.type == 0) {
+        sleep(value.value);
+        return value.value;
+    }
+    if (value.type == 1) {
+        int val = getValue(value.cell->row, value.cell->col);
+        sleep(val);
+        return val;
+    }
 }
 
 void cleanCell(Cell *cell) {
@@ -160,7 +172,11 @@ void cleanCell(Cell *cell) {
 
     if (formula.type == 2) {
         Function function = formula.function;
-        cell->value = functionCompute(function.type, function.range);
+        if (function.type == 5) {
+            cell->value = sleepCompute(formula.value1);
+        } else {
+            cell->value = functionCompute(function.type, function.range);
+        }
     }
 
     cell->state = 0;
@@ -277,4 +293,39 @@ void setFunctionExpression(const short row, const short col, const short type, c
     cell->formula = oldFormula;
 
     markDirty(cell);
+}
+
+void setSleepExpression(const short row, const short col, const Value value) {
+    Cell *cell = getCell(row, col);
+    Expression oldFormula = cell->formula;
+
+    Cell **dependencies = cell->dependencies;
+    int dependencies_count = cell->dependency_count;
+    for (int i = 0; i < dependencies_count; i++) {
+        deleteDependant(dependencies[i]->row, dependencies[i]->col, row, col);
+    }
+
+    oldFormula.type = 2;
+    oldFormula.value1 = value;
+    Function function;
+    function.type = 5;
+    Range range = {0, -1, -1, -1, -1};
+    function.range = range;
+    oldFormula.function = function;
+
+    if (value.type == 1) {
+        addDependant(value.cell->row, value.cell->col, row, col);
+        short rows[1] = {value.cell->row};
+        short cols[1] = {value.cell->col};
+        updateDependencies(rows, cols, 1, row, col);
+    }
+
+    if (value.type == 0) {
+        free(cell->dependencies);
+    }
+
+    cell->formula = oldFormula;
+
+    markDirty(cell);
+
 }
