@@ -3,8 +3,8 @@
 #include <string.h>
 #include <ctype.h>
 #include "cell_indexing.h"
-#include "constants.h"
-#include "primary_storage.h"
+#include "../constants.h"
+#include "../backend/primary_storage.h"
 
 bool cellWithinExpression(const Expression* expr, const short row, const short col) {
     if (expr->type == 0) {
@@ -62,19 +62,21 @@ void col_index_to_label(const short col, char *buffer) {
 int parse_cell_reference(const char *ref, short *row, short *col) {
     char col_str[MAX_COL_LABEL] = {0};
     int i = 0;
-    int col_ = 0;
-    while (isalpha(ref[i]) && col_ * 26 + (toupper(ref[i]) - 'A' + 1) <= total_cols) {
+    const int col_ = 0;
+    while (isalpha(ref[i]) && isupper(ref[i]) && col_ * 26 + (toupper(ref[i]) - 'A' + 1) <= tot_cols) {
         col_str[i] = (char) toupper(ref[i]);
         i++;
     }
+    col_str[i] = '\0';
     if (!isdigit(ref[i])) {
         *col = -1;
         *row = -1;
         return 0;
     }
+
     int row_ = 0;
     int at_least_one_digit = 0;
-    while (isdigit(ref[i]) && row_ * 10 + (ref[i] - '0') <= total_rows) {
+    while (isdigit(ref[i]) && row_ * 10 + (ref[i] - '0') <= tot_rows) {
         row_ = row_ * 10 + (ref[i] - '0');
         at_least_one_digit = 1;
         i++;
@@ -85,9 +87,8 @@ int parse_cell_reference(const char *ref, short *row, short *col) {
         return 0;
     }
 
-    col_str[i] = '\0';
-
     *col = col_label_to_index(col_str);
     *row = row_ - 1;
+
     return i;
 }

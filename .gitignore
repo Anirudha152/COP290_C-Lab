@@ -1,9 +1,6 @@
-# Default ignored files
 /shelf/
 /workspace.xml
-# Editor-based HTTP Client requests
 /httpRequests/
-# Datasource local storage ignored files
 /dataSources/
 /dataSources.local.xml
 .idea
@@ -14,3 +11,7 @@ sheet
 *.exe
 cmake-build-debug
 aks
+CMakeFiles
+CMakeLists.txt
+cmake_install.cmake
+cop290

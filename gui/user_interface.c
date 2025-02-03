@@ -3,17 +3,15 @@
 #include <string.h>
 #include <time.h>
 #include <ctype.h>
-#include "constants.h"
-#include "cell_indexing.h"
-#include "compute_unit.h"
+#include "../constants.h"
+#include "../parsing/cell_indexing.h"
+#include "../backend/compute_unit.h"
 #include "draw.h"
 #include "user_interface.h"
 
-int tot_rows;
-int tot_cols;
 
-void add_to_history(const Command *com) {
-    int index = (state->cmd_history_start + state->cmd_history_count) % CMD_HISTORY_SIZE;
+void add_to_history(const Command com) {
+    const int index = (state->cmd_history_start + state->cmd_history_count) % CMD_HISTORY_SIZE;
 
     if (state->cmd_history_count < CMD_HISTORY_SIZE) {
         state->cmd_history_count++;
@@ -21,11 +19,11 @@ void add_to_history(const Command *com) {
         state->cmd_history_start = (state->cmd_history_start + 1) % CMD_HISTORY_SIZE;
     }
 
-    strncpy(state->cmd_history[index].command, com->command, CMD_BUFFER_SIZE - 1);
-    state->cmd_history[index].time_taken = com->time_taken;
-    state->cmd_history[index].status = com->status;
-    if (com->error_msg[0] != '\0') {
-        strncpy(state->cmd_history[index].error_msg, com->error_msg, 63);
+    strncpy(state->cmd_history[index].command, com.command, CMD_BUFFER_SIZE - 1);
+    state->cmd_history[index].time_taken = com.time_taken;
+    state->cmd_history[index].status = com.status;
+    if (com.error_msg[0] != '\0') {
+        strncpy(state->cmd_history[index].error_msg, com.error_msg, 63);
     } else {
         state->cmd_history[index].error_msg[0] = '\0';
     }
@@ -35,15 +33,13 @@ void init_spreadsheet() {
     state = malloc(sizeof(DisplayState));
     if (!state) return;
 
-    initStorage(tot_rows, tot_cols);
-
     short max_y, max_x;
     getmaxyx(stdscr, max_y, max_x);
 
     state->grid_win = newwin(VIEWPORT_ROWS + 4, max_x, 0, 0);
     state->status_win = newwin(7, max_x, VIEWPORT_ROWS + 4, 0);
     state->command_win = newwin(CMD_HISTORY_SIZE + 1, max_x, max_y - (CMD_HISTORY_SIZE + 1), 0);
-    // state->debug_win = newwin(5, max_x, VIEWPORT_ROWS + 12, 0);
+    state->debug_win = newwin(5, max_x, VIEWPORT_ROWS + 12, 0);
 
     keypad(state->grid_win, TRUE);
     keypad(state->command_win, TRUE);
@@ -53,7 +49,6 @@ void init_spreadsheet() {
     state->mode = INTERACTIVE_MODE;
     state->cmd_pos = 0;
     state->command_input[0] = '\0';
-    state->last_edit = (LastEdit) {-1, -1, 0};
     state->viewport = (Viewport) {
         .start_row = 0,
         .start_col = 0,
@@ -126,43 +121,72 @@ void handle_movement_command(const char cmd) {
     }
 }
 
-void process_command() {
-    char command_str[CMD_BUFFER_SIZE];
-    strcpy(command_str, state->command_input);
-    to_upper(state->command_input);
-    remove_spaces(state->command_input);
-    if (strlen(state->command_input) == 1 && strchr("wasdWASD", state->command_input[0])) {
+void process_cli_input() {
+    char command[CMD_BUFFER_SIZE];
+    char error_msg[64];
+    Command com;
+    strcpy(command, state->command_input);
+    if (strlen(state->command_input) == 1 && strchr("wasd", state->command_input[0])) {
         handle_movement_command(state->command_input[0]);
+    } else if (strlen(state->command_input) == 1 && strchr("q", state->command_input[0])) {
+        cleanup_spreadsheet(state);
+    } else if (!abs(strcmp(command, "disable_output"))) {
+        // disable output here
+    } else if (!abs(strcmp(command, "enable_output"))) {
+        // enable output here
+    } else if (strncmp(command, "scroll_to", 9) == 0) {
+        if (command[9] != ' ') {
+            strcpy(error_msg, "Invalid scroll argument");
+            goto error;
+        }
+        short row, col;
+        const int resp = parse_cell_reference(command + 10, &row, &col);
+        if (!resp) {
+            strcpy(error_msg, "Invalid scroll argument");
+            goto error;
+        }
+        if (row >= 0 && row < tot_rows && col >= 0 && col < tot_cols) {
+            state->curr_row = row;
+            state->curr_col = col;
+            state->viewport.start_row = max(min(row - state->viewport.visible_rows / 2, tot_rows - state->viewport.visible_rows), 0);
+            state->viewport.start_col = max(min(col - state->viewport.visible_cols / 2, tot_cols - state->viewport.visible_cols), 0);
+        } else {
+            strcpy(error_msg, "Cell Reference Out of Bounds");
+            goto error;
+        }
     } else {
         char *equals = strchr(state->command_input, '=');
         const int equal_count = count_char(state->command_input, '=');
         if (equals && equal_count == 1) {
-            int equal_pos = equals - state->command_input;
+            const int equal_pos = equals - state->command_input;
             *equals = '\0';
             short row, col;
-            int resp = parse_cell_reference(state->command_input, &row, &col);
+            const int resp = parse_cell_reference(state->command_input, &row, &col);
             if (!resp || equal_pos != resp) {
-                Command com = {.status = 0, .time_taken = 0.0, .command = "", .error_msg = "Invalid cell reference"};
-                strcpy(com.command, command_str);
-                add_to_history(&com);
-            } else if (row >= 0 && row < tot_rows && col >= 0 && col < tot_cols) {
-                Command com = process_expression(equals + 1, row, col, state->viewport.start_row, state->viewport.start_col);
-                strcpy(com.command, command_str);
-                add_to_history(&com);
-            } else {
-                Command com = {.status = 0, .time_taken = 0.0, .command = "", .error_msg = "Invalid cell reference"};
-                strcpy(com.command, command_str);
-                add_to_history(&com);
+                strcpy(error_msg, "Invalid Expression");
+                goto error;
             }
-            *equals = '=';
+            if (row >= 0 && row < tot_rows && col >= 0 && col < tot_cols) {
+                com = process_expression(state->command_input, state->viewport.start_row, state->viewport.start_col);
+                add_to_history(com);
+            } else {
+                strcpy(error_msg, "Cell Reference Out of Bounds");
+                goto error;
+            }
         } else {
-            Command com = {.status = 0, .time_taken = 0.0, .command = "", .error_msg = "Command not recognized"};
-            strcpy(com.command, command_str);
-            add_to_history(&com);
+            strcpy(error_msg, "Unrecognized Command");
+            goto error;
         }
     }
     state->command_input[0] = '\0';
     state->cmd_pos = 0;
+    return;
+    error:
+        com.status = 0;
+        com.time_taken = 0.0;
+        strcpy(com.error_msg, error_msg);
+        strcpy(com.command, command);
+        add_to_history(com);
 }
 
 void handle_interactive_input(const int ch) {
@@ -211,17 +235,22 @@ void handle_interactive_input(const int ch) {
             wrefresh(state->grid_win);
             wgetnstr(state->grid_win, input, INPUT_BUFFER_SIZE - 1);
             noecho();
-            const Command com = process_expression(input, state->curr_row, state->curr_col, state->viewport.start_row, state->viewport.start_col);
-            add_to_history(&com);
+            char command[CMD_BUFFER_SIZE];
+            char col_label[MAX_COL_LABEL];
+            col_index_to_label(state->curr_col, col_label);
+            sprintf(command, "%s%d=%s", col_label, state->curr_row + 1, input);
+            strcpy(state->command_input, command);
+            process_cli_input();
             break;
         }
         case KEY_BACKSPACE:
         case 127: {
-            Value val = {0, 0, NULL};
-            setValueExpression(state->curr_row, state->curr_col, val);
-            state->last_edit.row = state->curr_row;
-            state->last_edit.col = state->curr_col;
-            state->last_edit.time = clock();
+            char col_label[MAX_COL_LABEL];
+            char command[CMD_BUFFER_SIZE];
+            col_index_to_label(state->curr_col, col_label);
+            sprintf(command, "%s%d=0", col_label, state->curr_row + 1);
+            strcpy(state->command_input, command);
+            process_cli_input();
             break;
         }
         default:
@@ -235,7 +264,7 @@ void handle_command_input(const int ch) {
             state->mode = INTERACTIVE_MODE;
             break;
         case '\n':
-            process_command();
+            process_cli_input();
             break;
         case KEY_BACKSPACE:
         case 127:
@@ -269,15 +298,14 @@ void initialize() {
     }
 }
 
-void run_user_interface(const short total_rows, const short total_cols) {
-    tot_rows = total_rows;
-    tot_cols = total_cols;
+void run_user_interface() {
     initialize();
     while (1) {
         draw();
         const int ch = getch();
         if (ch == 'q' || ch == 'Q')
             break;
+        // MAJOR BUG HERE, IF 'q' IS ENTERED ON KEYBOARD PROGRAM FUCKING DIES
 
         if (state->mode == INTERACTIVE_MODE) {
             handle_interactive_input(ch);

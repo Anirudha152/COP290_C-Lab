@@ -8,9 +8,10 @@
 #define MAX_COL_LABEL 4
 #define CMD_HISTORY_SIZE 5
 #define VIEWPORT_ROWS 10
-int max(int a, int b);
-int min(int a, int b);
+#define GUI 0
+short max(short a, short b);
+short min(short a, short b);
 void remove_spaces(char *s);
 void to_upper(char *s);
-int count_char(const char *s, const char c);
+int count_char(const char *s, char c);
 #endif

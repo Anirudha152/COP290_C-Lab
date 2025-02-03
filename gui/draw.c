@@ -1,11 +1,11 @@
 #include <ncurses.h>
 #include <stdlib.h>
 #include <math.h>
-#include "constants.h"
+#include "../constants.h"
 #include "draw.h"
 
-#include "cell_indexing.h"
-#include "compute_unit.h"
+#include "../parsing/cell_indexing.h"
+#include "../backend/compute_unit.h"
 
 DisplayState *state = NULL;
 
@@ -62,15 +62,11 @@ void draw_grid() {
             const short actual_col = j + state->viewport.start_col;
             const short x = (j + 1) * state->viewport.cell_width;
             const short y = i + 1;
-            const int value = getValue(actual_row, actual_col);
-            bool cell_in_expr = cellWithinExpression(&getCell(state->curr_row, state->curr_col)->formula, actual_row, actual_col);
+            const int value = get_cell_value(actual_row, actual_col);
+            bool cell_in_expr = cellWithinExpression(&get_cell(state->curr_row, state->curr_col)->formula, actual_row, actual_col);
             int param;
             if (state->mode == INTERACTIVE_MODE) {
-                if (actual_row == state->curr_row && actual_col == state->curr_col && actual_row == state->last_edit.row && actual_col == state->last_edit.col) {
-                    param = 3;
-                } else if (actual_row == state->last_edit.row && actual_col == state->last_edit.col) {
-                    param = 2;
-                } else if (actual_row == state->curr_row && actual_col == state->curr_col) {
+                if (actual_row == state->curr_row && actual_col == state->curr_col) {
                     param = 1;
                 } else if (cell_in_expr) {
                     param = 4;
@@ -78,30 +74,11 @@ void draw_grid() {
                     param = 0;
                 }
             } else {
-                if (actual_row == state->last_edit.row && actual_col == state->last_edit.col) {
-                    param = 2;
-                } else {
-                    param = 0;
-                }
+                param = 0;
             }
             draw_cell(value, y, x, state->viewport.cell_width, param);
         }
-        // reprint the last edit cell to ensure it's on top
-        if (state->last_edit.row >= state->viewport.start_row && state->last_edit.row < state->viewport.start_row + state->viewport.visible_rows &&
-            state->last_edit.col >= state->viewport.start_col && state->last_edit.col < state->viewport.start_col + state->viewport.visible_cols) {
-            const short x = (state->last_edit.col - state->viewport.start_col + 1) * state->viewport.cell_width;
-            const short y = state->last_edit.row - state->viewport.start_row + 1;
-            const int value = cellValue(state->last_edit.row, state->last_edit.col);
-            if (state->mode == INTERACTIVE_MODE) {
-                if (state->last_edit.row == state->curr_row && state->last_edit.col == state->curr_col) {
-                    draw_cell(value, y, x, state->viewport.cell_width, 3);
-                } else {
-                    draw_cell(value, y, x, state->viewport.cell_width, 2);
-                }
-            } else {
-                draw_cell(value, y, x, state->viewport.cell_width, 2);
-            }
-        }
+
     }
 
     char curr_col_label[MAX_COL_LABEL];
@@ -121,20 +98,20 @@ void draw_state() {
     wattroff(state->status_win, COLOR_PAIR(2));
 
     mvwprintw(state->status_win, 0, 17, "%s%d", curr_col_label, state->curr_row + 1);
-    mvwprintw(state->status_win, 1, 17, "%d", cellValue(state->curr_row, state->curr_col));
-    mvwprintw(state->status_win, 2, 17, "%s", get_expression_string(&getCell(state->curr_row, state->curr_col)->formula));
+    mvwprintw(state->status_win, 1, 17, "%d", get_raw_value(state->curr_row, state->curr_col));
+    mvwprintw(state->status_win, 2, 17, "%s", get_expression_string(&get_cell(state->curr_row, state->curr_col)->formula));
     wattron(state->status_win, COLOR_PAIR(2));
     wprintw(state->status_win, "\nDependencies:    ");
     wattroff(state->status_win, COLOR_PAIR(2));
-    for (int i = 0; i < getCell(state->curr_row, state->curr_col)->dependency_count; i++) {
+    for (int i = 0; i < get_cell(state->curr_row, state->curr_col)->dependency_count; i++) {
         char col_label[MAX_COL_LABEL];
-        col_index_to_label(getCell(state->curr_row, state->curr_col)->dependencies[i]->col, col_label);
+        col_index_to_label(get_cell(state->curr_row, state->curr_col)->dependencies[i]->col, col_label);
         bool done = false;
-        if (getCell(getCell(state->curr_row, state->curr_col)->dependencies[i]->row, getCell(state->curr_row, state->curr_col)->dependencies[i]->col)->state != 0) {
+        if (get_cell(get_cell(state->curr_row, state->curr_col)->dependencies[i]->row, get_cell(state->curr_row, state->curr_col)->dependencies[i]->col)->state != 0) {
             done = true;
             wattron(state->status_win, COLOR_PAIR(3));
         }
-        wprintw(state->status_win, "%s%d ", col_label, getCell(state->curr_row, state->curr_col)->dependencies[i]->row + 1);
+        wprintw(state->status_win, "%s%d ", col_label, get_cell(state->curr_row, state->curr_col)->dependencies[i]->row + 1);
         if (done) {
             wattroff(state->status_win, COLOR_PAIR(3));
         }
@@ -142,7 +119,7 @@ void draw_state() {
     wattron(state->status_win, COLOR_PAIR(2));
     wprintw(state->status_win, "\nDependants:      ");
     wattroff(state->status_win, COLOR_PAIR(2));
-    Node *node = getCell(state->curr_row, state->curr_col)->head_dependant;
+    const Node *node = get_cell(state->curr_row, state->curr_col)->head_dependant;
     while (node) {
         char col_label[MAX_COL_LABEL];
         col_index_to_label(node->cell->col, col_label);
@@ -162,9 +139,9 @@ void draw_state() {
 
 void draw_history() {
     wclear(state->command_win);
-    int start_row = CMD_HISTORY_SIZE - state->cmd_history_count;
+    const int start_row = CMD_HISTORY_SIZE - state->cmd_history_count;
     for (int i = 0; i < state->cmd_history_count; i++) {
-        int idx = (state->cmd_history_start + i) % CMD_HISTORY_SIZE;
+        const int idx = (state->cmd_history_start + i) % CMD_HISTORY_SIZE;
         Command *cmd = &state->cmd_history[idx];
 
         mvwprintw(state->command_win, start_row + i, 0, "~$ %s ", cmd->command);
@@ -196,12 +173,14 @@ void draw_history() {
 }
 
 void debugPrint(char* format, ...) {
-    // va_list args;
-    // va_start(args, format);
-    // wclear(state->debug_win);
-    // vw_printw(state->debug_win, format, args);
-    // va_end(args);
-    // wrefresh(state->debug_win);
+    if (GUI) {
+        va_list args;
+        va_start(args, format);
+        wclear(state->debug_win);
+        vw_printw(state->debug_win, format, args);
+        va_end(args);
+        wrefresh(state->debug_win);
+    }
 }
 
 void draw() {
