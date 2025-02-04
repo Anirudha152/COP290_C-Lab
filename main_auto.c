@@ -16,6 +16,10 @@ int main(const int argc, char *argv[]) {
         fprintf(stderr, "Usage: %s R C\n", argv[0]);
         return 1;
     }
+    if (!GUI) {
+        fprintf(stderr, "Set GUI to 1 in constants.h");
+        return 1;
+    }
     tot_rows = (short)strtol(argv[1], NULL, 10);
     tot_cols = (short)strtol(argv[2], NULL, 10);
     int t;
