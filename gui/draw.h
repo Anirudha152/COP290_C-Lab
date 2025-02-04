@@ -1,6 +1,5 @@
-#ifndef DRAW_H
-#define DRAW_H
-#include <time.h>
+#ifndef draw_h
+#define draw_h
 #include <ncurses.h>
 #include "../parsing/command_processing.h"
 

@@ -65,6 +65,7 @@ void cleanup_spreadsheet() {
         delwin(state->grid_win);
         delwin(state->status_win);
         delwin(state->command_win);
+        delwin(state->debug_win);
         free(state);
     }
     endwin();
@@ -167,7 +168,7 @@ void process_cli_input() {
                 goto error;
             }
             if (row >= 0 && row < tot_rows && col >= 0 && col < tot_cols) {
-                com = process_expression(state->command_input, state->viewport.start_row, state->viewport.start_col);
+                com = process_expression(command, state->viewport.start_row, state->viewport.start_col);
                 add_to_history(com);
             } else {
                 strcpy(error_msg, "Cell Reference Out of Bounds");
@@ -184,6 +185,7 @@ void process_cli_input() {
     error:
         com.status = 0;
         com.time_taken = 0.0;
+
         strcpy(com.error_msg, error_msg);
         strcpy(com.command, command);
         add_to_history(com);

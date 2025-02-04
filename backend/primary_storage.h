@@ -1,13 +1,7 @@
 #ifndef primary_storage_h
 #define primary_storage_h
-
 #include <stddef.h>
 struct Cell;
-
-typedef struct Node {
-    struct Cell *cell;
-    struct Node *next;
-} Node;
 
 typedef struct {
     short type;
@@ -36,6 +30,23 @@ typedef struct {
     Function function;
 } Expression;
 
+typedef struct SetNode {
+    struct Cell *cell;
+    struct SetNode *left;
+    struct SetNode *right;
+    struct SetNode *parent;
+    int height;
+} SetNode;
+
+typedef struct {
+    SetNode *root;
+    size_t size;
+} Set;
+
+typedef struct {
+    SetNode *current;
+} SetIterator;
+
 typedef struct Cell {
     int value;
     short row;
@@ -46,7 +57,7 @@ typedef struct Cell {
     struct Cell **dependencies;
     size_t dependency_count;
 
-    Node *head_dependant;
+    Set *dependants;
     size_t dependant_count;
 } Cell;
 
@@ -73,7 +84,7 @@ void destroy_storage();
 
 void initialize_cell(Cell *cell, short row, short col);
 
-void update_dependencies(const short *rows, const short *cols, int size, short source_row, short source_col);
+void update_dependencies(const short *rows, const short *cols, size_t size, short source_row, short source_col);
 
 int get_raw_value(short row, short col);
 
@@ -81,7 +92,7 @@ Cell *get_cell(short row, short col);
 
 void add_dependant(short source_row, short source_col, short row, short col);
 
-void delete_dependant(short source_row, short source_col, short target_row, short target_col);
+void delete_dependant(short source_row, short source_col, short row, short col);
 
 void initialize_expression(Expression *formula);
 

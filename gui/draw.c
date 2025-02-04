@@ -3,43 +3,42 @@
 #include <math.h>
 #include "../constants.h"
 #include "draw.h"
-
 #include "../parsing/cell_indexing.h"
 #include "../backend/compute_unit.h"
+#include "../data_structures/set.h"
 
 DisplayState *state = NULL;
 
-void draw_cell(const int value, const short y, const short x, const short width, const int printmode) {
-    if (printmode == 1)
-        wattron(state->grid_win, A_REVERSE);
-    else if (printmode == 2)
-        wattron(state->grid_win, COLOR_PAIR(1));
-    else if (printmode == 3) {
-        wattron(state->grid_win, A_REVERSE);
-        wattron(state->grid_win, COLOR_PAIR(1));
-    } else if (printmode == 4) {
-        wattron(state->grid_win, COLOR_PAIR(4));
+void draw_cell(const Cell* cell, const short y, const short x, const short width, const int color_pair, const int reverse) {
+    if (cell->state == 9) {
+        wattron(state->grid_win, COLOR_PAIR(3));
+        if (reverse) wattron(state->grid_win, A_REVERSE);
+        mvwprintw(state->grid_win, y, x, "%-*s", width - 1, "ERR");
+        wattroff(state->grid_win, COLOR_PAIR(3));
+        if (reverse) wattroff(state->grid_win, A_REVERSE);
+        return;
     }
-    const short len_val = log(abs(value)) + 1 + (value < 0);
-    if (printmode % 2 == 0) {
-        if (len_val > width - 1) {
-            mvwprintw(state->grid_win, y, x, "%d..", value/(int)pow(10, len_val - width));
+    if (reverse) wattron(state->grid_win, A_REVERSE);
+    if (color_pair) wattron(state->grid_win, COLOR_PAIR(color_pair));
+    int temp = cell->value;
+    short len_val = 0;
+    while (temp) {
+        len_val++;
+        temp /= 10;
+    }
+    if (cell->value == 0) len_val=1;
+    len_val += (cell->value < 0);
+    if (!reverse) {
+        if (len_val > width-1) {
+            mvwprintw(state->grid_win, y, x, "%d..", cell->value/(int)pow(10, len_val - width + 3));
         } else {
-            mvwprintw(state->grid_win, y, x, "%-*d", width - 1, value);
+            mvwprintw(state->grid_win, y, x, "%-*d", width - 1, cell->value);
         }
     } else {
-        mvwprintw(state->grid_win, y, x, "%-*d", width - 1, value);
+        mvwprintw(state->grid_win, y, x, "%-*d", width - 1, cell->value);
     }
-    if (printmode == 1)
-        wattroff(state->grid_win, A_REVERSE);
-    else if (printmode == 2)
-        wattroff(state->grid_win, COLOR_PAIR(1));
-    else if (printmode == 3) {
-        wattroff(state->grid_win, A_REVERSE);
-        wattroff(state->grid_win, COLOR_PAIR(1));
-    } else if (printmode == 4) {
-        wattroff(state->grid_win, COLOR_PAIR(4));
-    }
+    if (color_pair) wattroff(state->grid_win, COLOR_PAIR(color_pair));
+    if (reverse) wattroff(state->grid_win, A_REVERSE);
 }
 
 void draw_grid() {
@@ -63,22 +62,38 @@ void draw_grid() {
             const short x = (j + 1) * state->viewport.cell_width;
             const short y = i + 1;
             const int value = get_cell_value(actual_row, actual_col);
-            bool cell_in_expr = cellWithinExpression(&get_cell(state->curr_row, state->curr_col)->formula, actual_row, actual_col);
-            int param;
+            const bool cell_in_expr = cellWithinExpression(&get_cell(state->curr_row, state->curr_col)->formula, actual_row, actual_col);
+            int color_pair = 0;
+            int reverse = 0;
             if (state->mode == INTERACTIVE_MODE) {
                 if (actual_row == state->curr_row && actual_col == state->curr_col) {
-                    param = 1;
-                } else if (cell_in_expr) {
-                    param = 4;
-                } else {
-                    param = 0;
+                    reverse = 1;
                 }
-            } else {
-                param = 0;
+                if (cell_in_expr) {
+                    color_pair = 4;
+                }
+                if (get_cell(actual_row, actual_col)->state != 9 && get_cell(actual_row, actual_col)->state != 0) {
+                    color_pair = 1;
+                } else if (get_cell(actual_row, actual_col)->state == 9) {
+                    color_pair = 3;
+                }
             }
-            draw_cell(value, y, x, state->viewport.cell_width, param);
+            draw_cell(get_cell(actual_row, actual_col), y, x, state->viewport.cell_width, color_pair, reverse);
         }
-
+        if (state->mode == INTERACTIVE_MODE) {
+            if (state->curr_row < state->viewport.start_row || state->curr_row >= state->viewport.start_row + state->viewport.visible_rows ||
+                state->curr_col < state->viewport.start_col || state->curr_col >= state->viewport.start_col + state->viewport.visible_cols) {
+                continue;
+            }
+            int color_pair_ = 0;
+            int reverse_ = 1;
+            if (get_cell(state->curr_row, state->curr_col)->state != 9 && get_cell(state->curr_row, state->curr_col)->state != 0) {
+                color_pair_ = 1;
+            } else if (get_cell(state->curr_row, state->curr_col)->state == 9) {
+                color_pair_ = 3;
+            }
+            draw_cell(get_cell(state->curr_row, state->curr_col), state->curr_row - state->viewport.start_row + 1, (state->curr_col - state->viewport.start_col + 1) * state->viewport.cell_width, state->viewport.cell_width, color_pair_, reverse_);
+        }
     }
 
     char curr_col_label[MAX_COL_LABEL];
@@ -92,48 +107,76 @@ void draw_state() {
     col_index_to_label(state->curr_col, curr_col_label);
 
     wattron(state->status_win, COLOR_PAIR(2));
-    mvwprintw(state->status_win, 0, 0, "Current Cell:    ");
-    mvwprintw(state->status_win, 1, 0, "Cell Value:      ");
-    mvwprintw(state->status_win, 2, 0, "Cell Expression: ");
+    mvwprintw(state->status_win, 0, 0, "Current Cell:     ");
+    mvwprintw(state->status_win, 1, 0, "Cell Value:       ");
+    mvwprintw(state->status_win, 2, 0, "Cell Expression:  ");
     wattroff(state->status_win, COLOR_PAIR(2));
 
-    mvwprintw(state->status_win, 0, 17, "%s%d", curr_col_label, state->curr_row + 1);
-    mvwprintw(state->status_win, 1, 17, "%d", get_raw_value(state->curr_row, state->curr_col));
-    mvwprintw(state->status_win, 2, 17, "%s", get_expression_string(&get_cell(state->curr_row, state->curr_col)->formula));
+    mvwprintw(state->status_win, 0, 18, "%s%d", curr_col_label, state->curr_row + 1);
+    mvwprintw(state->status_win, 1, 18, "%d", get_raw_value(state->curr_row, state->curr_col));
+    mvwprintw(state->status_win, 2, 18, "%s", get_expression_string(&get_cell(state->curr_row, state->curr_col)->formula));
     wattron(state->status_win, COLOR_PAIR(2));
-    wprintw(state->status_win, "\nDependencies:    ");
+    wprintw(state->status_win, "\nDependencies:     ");
     wattroff(state->status_win, COLOR_PAIR(2));
-    for (int i = 0; i < get_cell(state->curr_row, state->curr_col)->dependency_count; i++) {
+    size_t dependency_count = get_cell(state->curr_row, state->curr_col)->dependency_count;
+    int excess = 0;
+    if (dependency_count > 20) {
+        dependency_count = 20;
+        excess = 1;
+    }
+    for (int i = 0; i < dependency_count; i++) {
         char col_label[MAX_COL_LABEL];
         col_index_to_label(get_cell(state->curr_row, state->curr_col)->dependencies[i]->col, col_label);
-        bool done = false;
-        if (get_cell(get_cell(state->curr_row, state->curr_col)->dependencies[i]->row, get_cell(state->curr_row, state->curr_col)->dependencies[i]->col)->state != 0) {
-            done = true;
+        int done = 0;
+        if (get_cell(get_cell(state->curr_row, state->curr_col)->dependencies[i]->row, get_cell(state->curr_row, state->curr_col)->dependencies[i]->col)->state == 9) {
+            done = 1;
             wattron(state->status_win, COLOR_PAIR(3));
+        } else if (get_cell(get_cell(state->curr_row, state->curr_col)->dependencies[i]->row, get_cell(state->curr_row, state->curr_col)->dependencies[i]->col)->state != 0) {
+            done = 2;
+            wattron(state->status_win, COLOR_PAIR(1));
         }
         wprintw(state->status_win, "%s%d ", col_label, get_cell(state->curr_row, state->curr_col)->dependencies[i]->row + 1);
-        if (done) {
+        if (done == 1) {
             wattroff(state->status_win, COLOR_PAIR(3));
+        } else if (done == 2) {
+            wattroff(state->status_win, COLOR_PAIR(1));
+        }
+    }
+    if (excess) {
+        wprintw(state->status_win, "...");
+    }
+    wattron(state->status_win, COLOR_PAIR(2));
+    wprintw(state->status_win, "\nDependency Count: ");
+    wattroff(state->status_win, COLOR_PAIR(2));
+    wprintw(state->status_win, "%lu", get_cell(state->curr_row, state->curr_col)->dependency_count);
+    wattron(state->status_win, COLOR_PAIR(2));
+    wprintw(state->status_win, "\nDependants:       ");
+    wattroff(state->status_win, COLOR_PAIR(2));
+    SetIterator *iter = set_iterator_create(get_cell(state->curr_row, state->curr_col)->dependants);
+    Cell *cell;
+    while ((cell = set_iterator_next(iter)) != NULL) {
+        char col_label[MAX_COL_LABEL];
+        col_index_to_label(cell->col, col_label);
+        int done = 0;
+        if (cell->state == 9) {
+            done = 1;
+            wattron(state->status_win, COLOR_PAIR(3));
+        } else if (cell->state != 0) {
+            done = 2;
+            wattron(state->status_win, COLOR_PAIR(1));
+        }
+        wprintw(state->status_win, "%s%d ", col_label, cell->row + 1);
+        if (done == 1) {
+            wattroff(state->status_win, COLOR_PAIR(3));
+        } else if (done == 2) {
+            wattroff(state->status_win, COLOR_PAIR(1));
         }
     }
     wattron(state->status_win, COLOR_PAIR(2));
-    wprintw(state->status_win, "\nDependants:      ");
+    wprintw(state->status_win, "\nDependant Count:  ");
     wattroff(state->status_win, COLOR_PAIR(2));
-    const Node *node = get_cell(state->curr_row, state->curr_col)->head_dependant;
-    while (node) {
-        char col_label[MAX_COL_LABEL];
-        col_index_to_label(node->cell->col, col_label);
-        bool done = false;
-        if (node->cell->state != 0) {
-            done = true;
-            wattron(state->status_win, COLOR_PAIR(3));
-        }
-        wprintw(state->status_win, "%s%d ", col_label, node->cell->row + 1);
-        if (done) {
-            wattroff(state->status_win, COLOR_PAIR(3));
-        }
-        node = node->next;
-    }
+    wprintw(state->status_win, "%lu", get_cell(state->curr_row, state->curr_col)->dependant_count);
+    set_iterator_destroy(iter);
     wrefresh(state->status_win);
 }
 
@@ -173,7 +216,7 @@ void draw_history() {
 }
 
 void debugPrint(char* format, ...) {
-    if (GUI) {
+    if (DEBUG_GUI) {
         va_list args;
         va_start(args, format);
         wclear(state->debug_win);

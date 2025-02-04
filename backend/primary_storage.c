@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "primary_storage.h"
-#include "stack.h"
+#include "../data_structures/stack.h"
+#include "../data_structures/set.h"
 
 Cell *table;
 
@@ -30,13 +31,7 @@ void destroy_storage() {
             if (cell->dependencies != NULL) {
                 free(cell->dependencies);
             }
-
-            Node *temp = cell->head_dependant;
-            while (temp != NULL) {
-                Node *next = temp->next;
-                free(temp);
-                temp = next;
-            }
+            set_destroy(cell->dependants);
         }
     }
     free(table);
@@ -77,7 +72,8 @@ void initialize_cell(Cell *cell, const short row, const short col) {
     cell->state = 0;
     cell->dependencies = NULL;
     cell->dependency_count = 0;
-    cell->head_dependant = NULL;
+    cell->dependants = set_create();
+    cell->dependant_count = 0;
 }
 
 int get_raw_value(const short row, const short col) {
@@ -87,14 +83,10 @@ int get_raw_value(const short row, const short col) {
     }
 
     const Cell *cell = &table[(int) row * (int) tot_cols + (int) col];
-    // if (cell->state == 2)
-    // {
-    //     updateCell(cell);
-    // }
     return cell->value;
 }
 
-void update_dependencies(const short *rows, const short *cols, const int size, const short source_row, const short source_col) {
+void update_dependencies(const short *rows, const short *cols, const size_t size, const short source_row, const short source_col) {
     Cell *cell = &table[(int) source_row * tot_cols + source_col];
     if (cell->dependencies != NULL) {
         free(cell->dependencies);
@@ -121,55 +113,20 @@ void update_dependencies(const short *rows, const short *cols, const int size, c
 
 void add_dependant(const short source_row, const short source_col, const short row, const short col) {
     if (row < 0 || row >= tot_rows || col < 0 || col >= tot_cols) {
-        printf("Invalid cell reference\n");
-        exit(1);
+        return;
     }
 
     Cell *cell = &table[(int) source_row * (int) tot_cols + (int) source_col];
 
     Cell *dependant = &table[(int) row * (int) tot_cols + (int) col];
-    Node *new_node = (Node *) malloc(sizeof(Node));
-    if (new_node == NULL) {
-        printf("Memory allocation failed\n");
-        exit(1);
-    }
-
-    new_node->cell = dependant;
-
-    // check if dependant is already present
-    const Node *temp = cell->head_dependant;
-    while (temp != NULL) {
-        if (temp->cell == dependant) {
-            return;
-        }
-        temp = temp->next;
-    }
-
-    new_node->next = cell->head_dependant;
-    cell->head_dependant = new_node;
-
-    cell->dependant_count++;
+    set_insert(cell->dependants, dependant);
+    cell->dependant_count = set_size(cell->dependants);
 }
 
-void delete_dependant(const short source_row, const short source_col, const short target_row, const short target_col) {
+void delete_dependant(const short source_row, const short source_col, const short row, const short col) {
     Cell *source = &table[(int) source_row * (int) tot_cols + (int) source_col];
-    Node *temp = source->head_dependant;
-    Node *prev = NULL;
-
-    while (temp != NULL) {
-        if (temp->cell->row == target_row && temp->cell->col == target_col) {
-            if (prev == NULL) {
-                source->head_dependant = temp->next;
-            } else {
-                prev->next = temp->next;
-            }
-            free(temp);
-            return;
-        }
-        prev = temp;
-        temp = temp->next;
-    }
-    source->dependant_count--;
+    set_remove(source->dependants, row, col);
+    source->dependant_count = set_size(source->dependants);
 }
 
 Cell *get_cell(const short row, const short col) {

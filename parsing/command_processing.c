@@ -7,6 +7,7 @@
 #include "../constants.h"
 #include "../backend/compute_unit.h"
 #include "../backend/primary_storage.h"
+#include "../gui/draw.h"
 #include "cell_indexing.h"
 #include "command_processing.h"
 
@@ -14,7 +15,6 @@
 Value parse_value(const char *expr, char **end, short mode) {
     // mode = 0 -> value at the start of function, mode = 1 -> value at the end of function, mode = 2 -> value at the start of arithmetic expression, mode = 3 -> value at the end of arithmetic expression
     Value val = {2, 0, NULL};
-    while (*expr == ' ') expr++;
 
     if (isdigit(*expr) || *expr == '-') {
         val.type = 0;
@@ -185,22 +185,11 @@ char *get_expression_string(const Expression *expr) {
     return buffer;
 }
 
-double sub_timespec(struct timespec t1, struct timespec t2, struct timespec *td) {
-    td->tv_nsec = t2.tv_nsec - t1.tv_nsec;
-    td->tv_sec = t2.tv_sec - t1.tv_sec;
-    if (td->tv_sec > 0 && td->tv_nsec < 0) {
-        td->tv_nsec += 1000000000;
-        td->tv_sec--;
-    } else if (td->tv_sec < 0 && td->tv_nsec > 0) {
-        td->tv_nsec -= 1000000000;
-        td->tv_sec++;
-    }
-    return (double) td->tv_sec + (double) td->tv_nsec / 1000000000;
-}
-
 Command process_expression(const char *command, const short viewport_row, const short viewport_col) {
     struct timespec start, finish, delta;
-    clock_gettime(CLOCK_REALTIME, &start);
+    if (GUI) {
+        clock_gettime(CLOCK_REALTIME, &start);
+    }
     char *end;
     Value val1;
     Command com;
@@ -209,7 +198,7 @@ Command process_expression(const char *command, const short viewport_row, const 
     short row, col;
     const int pos = parse_cell_reference(command, &row, &col);
     if (!pos) {
-        strcpy(err_message, "Invalid Cell Reference");
+        strcpy(err_message, "Invalid Command");
         goto error;
     }
     command += (pos + 1);
@@ -278,17 +267,23 @@ Command process_expression(const char *command, const short viewport_row, const 
         }
     }
     for (short i = viewport_row; i < viewport_row + VIEWPORT_ROWS; i++) {
+        if (i >= tot_rows) break;
         for (short j = viewport_col; j < viewport_col + VIEWPORT_ROWS; j++) {
+            if (j >= tot_cols) break;
             get_cell_value(i, j);
         }
     }
-    clock_gettime(CLOCK_REALTIME, &finish);
-    com.time_taken = sub_timespec(start, finish, &delta);
+    if (GUI) {
+        clock_gettime(CLOCK_REALTIME, &finish);
+        com.time_taken = sub_timespec(start, finish, &delta);
+    }
     com.status = 1;
     return com;
 error:
-    clock_gettime(CLOCK_REALTIME, &finish);
-    com.time_taken = sub_timespec(start, finish, &delta);
+    if (GUI) {
+        clock_gettime(CLOCK_REALTIME, &finish);
+        com.time_taken = sub_timespec(start, finish, &delta);
+    }
     com.status = 0;
     strcpy(com.error_msg, err_message);
     return com;
