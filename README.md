@@ -33,8 +33,8 @@ c) Test (for testing purposes)
 ### GUI
 To run the program in GUI mode, run the following command:
 ```bash
-make gui
-./gui R C
+make gui_int
+./gui_int R C
 ```
 where R is the number of rows and C is the number of columns in the spreadsheet.
 **R and C should be greater than 10 here**

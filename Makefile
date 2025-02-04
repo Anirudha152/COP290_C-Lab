@@ -3,7 +3,7 @@ CFLAGS = -c
 LDFLAGS1 = -lm
 LDFLAGS2 = -lm -lncurses
 TARGET_CLI = sheet
-TARGET_GUI = gui
+TARGET_GUI = gui_int
 TARGET_AUT = test
 SOURCES_CLI = cli/user_interface.c \
               parsing/command_processing.c \
