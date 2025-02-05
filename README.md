@@ -33,8 +33,8 @@ c) Test (for testing purposes)
 ### GUI
 To run the program in GUI mode, run the following command:
 ```bash
-make gui_int
-./gui_int R C
+make gui
+./sheet R C [options]
 ```
 where R is the number of rows and C is the number of columns in the spreadsheet.
 **R and C should be greater than 10 here**
@@ -54,7 +54,7 @@ Command Based:
 To run the program in CLI mode, run the following command:
 ```bash
 make
-./sheet R C
+./sheet R C [options]
 ```
 where R is the number of rows and C is the number of columns in the spreadsheet.
 
@@ -70,7 +70,7 @@ CLI has only 1 mode: **Command Based** mode.
 To run the program in Test mode, run the following command:
 ```bash
 make test
-./test R C
+./sheet R C [options]
 ```
 where R is the number of rows and C is the number of columns in the spreadsheet.
 

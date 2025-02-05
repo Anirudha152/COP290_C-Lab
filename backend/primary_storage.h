@@ -95,8 +95,6 @@ void add_dependant(short source_row, short source_col, short row, short col);
 void delete_dependant(short source_row, short source_col, short row, short col);
 
 void initialize_expression(Expression *formula);
-
-extern short tot_rows;
-extern short tot_cols;
-
+extern short TOT_ROWS;
+extern short TOT_COLS;
 #endif

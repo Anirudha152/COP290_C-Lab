@@ -7,7 +7,7 @@
 Cell *table;
 
 void initialize_storage() {
-    const int size = (int) tot_rows * (int) tot_cols;
+    const int size = (int) TOT_ROWS * (int) TOT_COLS;
     table = (Cell *) malloc(sizeof(Cell) * size);
 
     if (table == NULL) {
@@ -15,9 +15,9 @@ void initialize_storage() {
         exit(1);
     }
 
-    for (short i = 0; i < tot_rows; i++) {
-        for (short j = 0; j < tot_cols; j++) {
-            initialize_cell(&table[i * tot_cols + j], i, j);
+    for (short i = 0; i < TOT_ROWS; i++) {
+        for (short j = 0; j < TOT_COLS; j++) {
+            initialize_cell(&table[i * TOT_COLS + j], i, j);
         }
     }
     initialize_stack();
@@ -25,9 +25,9 @@ void initialize_storage() {
 }
 
 void destroy_storage() {
-    for (short i = 0; i < tot_rows; i++) {
-        for (short j = 0; j < tot_cols; j++) {
-            const Cell *cell = &table[i * tot_cols + j];
+    for (short i = 0; i < TOT_ROWS; i++) {
+        for (short j = 0; j < TOT_COLS; j++) {
+            const Cell *cell = &table[i * TOT_COLS + j];
             if (cell->dependencies != NULL) {
                 free(cell->dependencies);
             }
@@ -77,17 +77,17 @@ void initialize_cell(Cell *cell, const short row, const short col) {
 }
 
 int get_raw_value(const short row, const short col) {
-    if (row < 0 || row >= tot_rows || col < 0 || col >= tot_cols) {
+    if (row < 0 || row >= TOT_ROWS || col < 0 || col >= TOT_COLS) {
         printf("Invalid cell reference\n");
         return 0;
     }
 
-    const Cell *cell = &table[(int) row * (int) tot_cols + (int) col];
+    const Cell *cell = &table[(int) row * (int) TOT_COLS + (int) col];
     return cell->value;
 }
 
 void update_dependencies(const short *rows, const short *cols, const size_t size, const short source_row, const short source_col) {
-    Cell *cell = &table[(int) source_row * tot_cols + source_col];
+    Cell *cell = &table[(int) source_row * TOT_COLS + source_col];
     if (cell->dependencies != NULL) {
         free(cell->dependencies);
         cell->dependencies = NULL;
@@ -100,11 +100,11 @@ void update_dependencies(const short *rows, const short *cols, const size_t size
     }
 
     for (int i = 0; i < size; i++) {
-        if (rows[i] < 0 || rows[i] >= tot_rows || cols[i] < 0 || cols[i] >= tot_cols) {
+        if (rows[i] < 0 || rows[i] >= TOT_ROWS || cols[i] < 0 || cols[i] >= TOT_COLS) {
             printf("Invalid cell reference\n");
             exit(1);
         }
-        dependency[i] = &table[(int) rows[i] * (int) tot_cols + (int) cols[i]];
+        dependency[i] = &table[(int) rows[i] * (int) TOT_COLS + (int) cols[i]];
     }
 
     cell->dependencies = dependency;
@@ -112,23 +112,23 @@ void update_dependencies(const short *rows, const short *cols, const size_t size
 }
 
 void add_dependant(const short source_row, const short source_col, const short row, const short col) {
-    if (row < 0 || row >= tot_rows || col < 0 || col >= tot_cols) {
+    if (row < 0 || row >= TOT_ROWS || col < 0 || col >= TOT_COLS) {
         return;
     }
 
-    Cell *cell = &table[(int) source_row * (int) tot_cols + (int) source_col];
+    Cell *cell = &table[(int) source_row * (int) TOT_COLS + (int) source_col];
 
-    Cell *dependant = &table[(int) row * (int) tot_cols + (int) col];
+    Cell *dependant = &table[(int) row * (int) TOT_COLS + (int) col];
     set_insert(cell->dependants, dependant);
     cell->dependant_count = set_size(cell->dependants);
 }
 
 void delete_dependant(const short source_row, const short source_col, const short row, const short col) {
-    Cell *source = &table[(int) source_row * (int) tot_cols + (int) source_col];
+    Cell *source = &table[(int) source_row * (int) TOT_COLS + (int) source_col];
     set_remove(source->dependants, row, col);
     source->dependant_count = set_size(source->dependants);
 }
 
 Cell *get_cell(const short row, const short col) {
-    return &table[(int) row * (int) tot_cols + (int) col];
+    return &table[(int) row * (int) TOT_COLS + (int) col];
 }

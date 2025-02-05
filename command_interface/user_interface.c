@@ -26,8 +26,8 @@ void initialize_display() {
 	}
 	state->start_row = 0;
 	state->start_col = 0;
-	state->visible_rows = VIEWPORT_ROWS > tot_rows ? tot_rows : VIEWPORT_ROWS;
-	state->visible_cols = VIEWPORT_ROWS > tot_cols ? tot_cols : VIEWPORT_ROWS;
+	state->visible_rows = VIEWPORT_ROWS > TOT_ROWS ? TOT_ROWS : VIEWPORT_ROWS;
+	state->visible_cols = VIEWPORT_ROWS > TOT_COLS ? TOT_COLS : VIEWPORT_ROWS;
 	state->output_enabled = 1;
 }
 
@@ -38,31 +38,30 @@ void cleanup_display() {
 }
 
 void move_to(const short row, const short col) {
-	state->start_row = max(min(row, tot_rows - 1), 0);
-	state->start_col = max(min(col, tot_cols - 1), 0);
-	state->visible_rows = min(VIEWPORT_ROWS, tot_rows - state->start_row);
-	state->visible_cols = min(VIEWPORT_ROWS, tot_cols - state->start_col);
+	state->start_row = max(min(row, TOT_ROWS - 1), 0);
+	state->start_col = max(min(col, TOT_COLS - 1), 0);
+	state->visible_rows = min(VIEWPORT_ROWS, TOT_ROWS - state->start_row);
+	state->visible_cols = min(VIEWPORT_ROWS, TOT_COLS - state->start_col);
 }
 
 void handle_movement_command(const char cmd) {
-	if (state->output_enabled) {
-		switch (cmd) {
-			case 'w':
-				if (state->start_row != 0) move_to(state->start_row - SCROLL_AMOUNT, state->start_col);
+	switch (cmd) {
+		case 'w':
+			if (state->start_row != 0) move_to(state->start_row - SCROLL_AMOUNT, state->start_col);
+		break;
+		case 's':
+			if (state->start_row != TOT_ROWS - 1) move_to(state->start_row + SCROLL_AMOUNT, state->start_col);
+		break;
+		case 'a':
+			if (state->start_col != 0) move_to(state->start_row, state->start_col - SCROLL_AMOUNT);
+		break;
+		case 'd':
+			if (state->start_col != TOT_COLS - 1) move_to(state->start_row, state->start_col + SCROLL_AMOUNT);
+		break;
+		default:
 			break;
-			case 's':
-				if (state->start_row != tot_rows - 1) move_to(state->start_row + SCROLL_AMOUNT, state->start_col);
-			break;
-			case 'a':
-				if (state->start_col != 0) move_to(state->start_row, state->start_col - SCROLL_AMOUNT);
-			break;
-			case 'd':
-				if (state->start_col != tot_cols - 1) move_to(state->start_row, state->start_col + SCROLL_AMOUNT);
-			break;
-			default:
-				break;
-		}
 	}
+
 }
 
 void draw_grid() {
@@ -135,7 +134,7 @@ int run() {
 			strcpy(error_msg, "Invalid scroll argument");
 			goto error;
 		}
-		if (row >= 0 && row < tot_rows && col >= 0 && col < tot_cols) {
+		if (row >= 0 && row < TOT_ROWS && col >= 0 && col < TOT_COLS) {
 			move_to(row, col);
 		} else {
 			strcpy(error_msg, "Cell Reference Out of Bounds");

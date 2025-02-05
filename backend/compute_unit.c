@@ -4,6 +4,7 @@
 #include <math.h>
 #include "primary_storage.h"
 #include "compute_unit.h"
+#include "../constants.h"
 #include "../data_structures/stack.h"
 #include "../data_structures/set.h"
 
@@ -52,6 +53,8 @@ void clear_debris() {
     }
 }
 
+pair evaluate_cell(const Cell *cell);
+
 void mark_dirty(Cell *start_cell) {
     clear_stack();
     stack_push(start_cell);
@@ -67,7 +70,7 @@ void mark_dirty(Cell *start_cell) {
         int done = 1;
         Cell *cell;
         while ((cell = set_iterator_next(iter)) != NULL) {
-            if (cell->state != 3 && cell->state != 1) {
+            if (cell->state == 4) {
                 stack_push(cell);
                 done = 0;
             }
@@ -75,6 +78,35 @@ void mark_dirty(Cell *start_cell) {
         if (done) {
             stack_pop();
             current->state = 1;
+        }
+        set_iterator_destroy(iter);
+    }
+}
+
+void clean_cells_forward(Cell* start_cell) {
+    clear_stack();
+    stack_push(start_cell);
+    while (!is_stack_empty()) {
+        Cell *current = stack_top();
+        stack_pop();
+        pair eval = evaluate_cell(current);
+        current->state = eval.first ? 0 : 9;
+        current->value = eval.second;
+        SetIterator *iter = set_iterator_create(current->dependants);
+        Cell *cell;
+        while ((cell = set_iterator_next(iter)) != NULL) {
+            if (cell->state == 4) {
+                int flag = 1;
+                for (int i = 0; i < cell->dependency_count; i++) {
+                    if (cell->dependencies[i]->state != 0) {
+                        flag = 0;
+                        break;
+                    }
+                }
+                if (flag) {
+                    stack_push(cell);
+                }
+            }
         }
         set_iterator_destroy(iter);
     }
@@ -193,6 +225,62 @@ pair sleep_compute(const Value value) {
     return ret;
 }
 
+pair evaluate_cell(const Cell *cell) {
+    const Expression formula = cell->formula;
+    int eval = 0;
+    if (formula.type == 0) {
+        const Value value = formula.value1;
+        if (value.type == 0) {
+            eval = value.value;
+        } else {
+            eval = value.cell->value;
+            if (value.cell->state == 9) goto zero_error;
+        }
+    } else if (formula.type == 1) {
+        const Value value1 = formula.value1;
+        const Value value2 = formula.value2;
+        int val1;
+        int val2;
+        if (value1.type == 0) {
+            val1 = value1.value;
+        } else {
+            val1 = value1.cell->value;
+            if (value1.cell->state == 9) goto zero_error;
+        }
+
+        if (value2.type == 0) {
+            val2 = value2.value;
+        } else {
+            val2 = value2.cell->value;
+            if (value2.cell->state == 9) goto zero_error;
+        }
+
+        if (formula.operation == 0) {
+            eval = val1 + val2;
+        } else if (formula.operation == 1) {
+            eval = val1 - val2;
+        } else if (formula.operation == 2) {
+            eval = val1 * val2;
+        } else if (formula.operation == 3) {
+            if (val2 == 0) {
+                goto zero_error;
+            }
+            eval = val1 / val2;
+        }
+    } else if (formula.type == 2) {
+        Function function = formula.function;
+        if (function.type != 5) {
+            return function_compute(function.type, function.range);
+        }
+        return sleep_compute(formula.value1);
+    }
+    return (pair) {1, eval};
+    zero_error:
+        eval = 0;
+        return (pair) {0, eval};
+
+}
+
 void clean_cell(Cell *cell) {
     if (cell->state == 0) {
         return;
@@ -217,63 +305,9 @@ void clean_cell(Cell *cell) {
             continue;
         }
         stack_pop();
-        const Expression formula = current_cell->formula;
-        if (formula.type == 0) {
-            const Value value = formula.value1;
-            if (value.type == 0) {
-                current_cell->value = value.value;
-            } else {
-                current_cell->value = value.cell->value;
-                if (value.cell->state == 9) goto zero_error;
-            }
-        } else if (formula.type == 1) {
-            const Value value1 = formula.value1;
-            const Value value2 = formula.value2;
-            int val1;
-            int val2;
-            if (value1.type == 0) {
-                val1 = value1.value;
-            } else {
-                val1 = value1.cell->value;
-                if (value1.cell->state == 9) goto zero_error;
-            }
-
-            if (value2.type == 0) {
-                val2 = value2.value;
-            } else {
-                val2 = value2.cell->value;
-                if (value2.cell->state == 9) goto zero_error;
-            }
-
-            if (formula.operation == 0) {
-                current_cell->value = val1 + val2;
-            } else if (formula.operation == 1) {
-                current_cell->value = val1 - val2;
-            } else if (formula.operation == 2) {
-                current_cell->value = val1 * val2;
-            } else if (formula.operation == 3) {
-                if (val2 == 0) {
-                    goto zero_error;
-                }
-                current_cell->value = val1 / val2;
-            }
-        } else if (formula.type == 2) {
-            const Function function = formula.function;
-            if (function.type != 5) {
-                const pair ret = function_compute(function.type, function.range);
-                if (!ret.first) goto zero_error;
-                current_cell->value = ret.second;
-            } else {
-                const pair ret = sleep_compute(formula.value1);
-                if (!ret.first) goto zero_error;
-                current_cell->value = ret.second;
-            }
-        }
-        current_cell->state = 0;
-        continue;
-    zero_error:
-        current_cell->value = 0;
-        current_cell->state = 9;
+        const pair eval = evaluate_cell(current_cell);
+        current_cell->state = eval.first ? 0 : 9;
+        current_cell->value = eval.second;
     }
 }
 
@@ -284,8 +318,8 @@ void copy_dependencies(Cell** dependencies, const size_t dependencies_count, sho
     }
 }
 
-void handle_circular_connection(int circular_stat, Cell *cell, short *rows_prev, short *cols_prev, const size_t dependencies_count, Expression formula) {
-    if (!circular_stat) {
+int handle_circular_connection(Cell *cell, short *rows_prev, short *cols_prev, const size_t dependencies_count, Expression formula) {
+    if (!circular_check(cell)) {
         clear_debris();
         // delete current cell as a dependant from its new dependencies
         for (int i = 0; i < cell->dependency_count; i++) {
@@ -302,12 +336,16 @@ void handle_circular_connection(int circular_stat, Cell *cell, short *rows_prev,
         for (int i = 0; i < dependencies_count; i++) {
             update_dependencies(rows_prev, cols_prev, dependencies_count, cell->row, cell->col);
         }
-    } else {
-        cell->formula = formula;
-        mark_dirty(cell);
+        free(rows_prev);
+        free(cols_prev);
+        return 0;
     }
+    cell->formula = formula;
+    if (LAZY_EVALUATION) mark_dirty(cell);
+    else clean_cells_forward(cell);
     free(rows_prev);
     free(cols_prev);
+    return 1;
 }
 
 int set_expression(const short row, const short col, const short expression_type, const Value value1, const Value value2, const short operation, const short function_type, const Range range) {
@@ -331,7 +369,6 @@ int set_expression(const short row, const short col, const short expression_type
     formula.operation = operation;
     formula.function.type = function_type;
     formula.function.range = range;
-    int circular_stat = 1;
     if (expression_type == 0) {
         if (value1.type == 0) {
             free(cell->dependencies);
@@ -342,8 +379,8 @@ int set_expression(const short row, const short col, const short expression_type
             const short cols[1] = {value1.cell->col};
             update_dependencies(rows, cols, 1, row, col);
             add_dependant(value1.cell->row, value1.cell->col, row, col);
-            circular_stat = circular_check(cell);
         }
+
     } else if (expression_type == 1) {
         if (value1.type + value2.type == 0) {
             free(cell->dependencies);
@@ -363,7 +400,6 @@ int set_expression(const short row, const short col, const short expression_type
             add_dependant(value1.cell->row, value1.cell->col, row, col);
             add_dependant(value2.cell->row, value2.cell->col, row, col);
         }
-        circular_stat = value1.type + value2.type ? circular_check(cell) : 0;
     } else if (expression_type == 2 && function_type != 5) {
         const int size = (range.end_row - range.start_row + 1) * (range.end_col - range.start_col + 1);
         short *rows = malloc(size * sizeof(short));
@@ -376,7 +412,6 @@ int set_expression(const short row, const short col, const short expression_type
             }
         }
         update_dependencies(rows, cols, size, row, col);
-        circular_stat = circular_check(cell);
         free(cols);
         free(rows);
     } else if (expression_type == 2 && function_type == 5) {
@@ -389,11 +424,9 @@ int set_expression(const short row, const short col, const short expression_type
             const short rows[1] = {value1.cell->row};
             const short cols[1] = {value1.cell->col};
             update_dependencies(rows, cols, 1, row, col);
-            circular_stat = circular_check(cell);
         }
     }
-    handle_circular_connection(circular_stat, cell, rows_prev, cols_prev, dependencies_count, formula);
-    return circular_stat;
+    return handle_circular_connection(cell, rows_prev, cols_prev, dependencies_count, formula);
 }
 
 int set_value_expression(const short row, const short col, const Value value) {

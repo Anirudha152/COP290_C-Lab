@@ -7,7 +7,7 @@
 #include "../constants.h"
 #include "../backend/compute_unit.h"
 #include "../backend/primary_storage.h"
-#include "../gui/draw.h"
+#include "../graphical_interface/draw.h"
 #include "cell_indexing.h"
 #include "command_processing.h"
 
@@ -267,9 +267,9 @@ Command process_expression(const char *command, const short viewport_row, const 
         }
     }
     for (short i = viewport_row; i < viewport_row + VIEWPORT_ROWS; i++) {
-        if (i >= tot_rows) break;
+        if (i >= TOT_ROWS) break;
         for (short j = viewport_col; j < viewport_col + VIEWPORT_ROWS; j++) {
-            if (j >= tot_cols) break;
+            if (j >= TOT_COLS) break;
             get_cell_value(i, j);
         }
     }

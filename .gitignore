@@ -16,5 +16,5 @@ CMakeLists.txt
 cmake_install.cmake
 cop290
 sheet
-gui
+graphical_interface
 test

@@ -10,4 +10,6 @@ typedef struct {
 } DisplayState;
 extern DisplayState *state;
 void run_user_interface();
+extern short TOT_ROWS;
+extern short TOT_COLS;
 #endif

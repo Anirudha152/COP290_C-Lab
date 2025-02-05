@@ -63,7 +63,7 @@ int parse_cell_reference(const char *ref, short *row, short *col) {
     char col_str[MAX_COL_LABEL] = {0};
     int i = 0;
     int col_ = 0;
-    while (isalpha(ref[i]) && isupper(ref[i]) && col_ * 26 + (toupper(ref[i]) - 'A' + 1) <= tot_cols) {
+    while (isalpha(ref[i]) && isupper(ref[i]) && col_ * 26 + (toupper(ref[i]) - 'A' + 1) <= TOT_COLS) {
         col_str[i] = (char) toupper(ref[i]);
         col_ = col_ * 26 + (toupper(ref[i]) - 'A' + 1);
         i++;
@@ -77,7 +77,7 @@ int parse_cell_reference(const char *ref, short *row, short *col) {
 
     int row_ = 0;
     int at_least_one_digit = 0;
-    while (isdigit(ref[i]) && (at_least_one_digit || ref[i] != '0') && row_ * 10 + (ref[i] - '0') <= tot_rows) {
+    while (isdigit(ref[i]) && (at_least_one_digit || ref[i] != '0') && row_ * 10 + (ref[i] - '0') <= TOT_ROWS) {
         row_ = row_ * 10 + (ref[i] - '0');
         at_least_one_digit = 1;
         i++;
