@@ -9,38 +9,6 @@
 This repository contains the code for the C Lab Assignment for COP290 course. The assignment is to implement a simplified spreadsheet program in C similar to Excel. The program stores the matrix in memory with a scrollable viewport on display. It will support the below specified functions along with lazy evaluation and storing the data on the heap to maximise the efficiency and scalability of the program.
 The expressions that each cell can contain are:
 1. Value
-<<<<<<< HEAD
-   1. Constant
-   2. Reference to another cell
-2. Arithmetic Operations
-   1. Addition
-   2. Subtraction
-   3. Multiplication
-   4. Division
-3. Mathematical Functions
-   1. Sum
-   2. Average
-   3. Stdev
-   4. Min
-   5. Max
-   6. Sleep
-
-## Features
-1. The program supports the following features:
-   1. Scrolling the viewport
-   2. Editing the cell values
-   3. Evaluating the cell expressions
-   4. Undo and Redo operations
-   5. Copy and Paste operations
-   6. Mathematical functions
-   7. Sleep function
-   8. Error handling
-   9. Lazy evaluation
-   10. Memory management
-   11. Efficient data structures
-   12. Scalability
-   13. Clean UI
-=======
     1. Constant
     2. Reference to another cell
 2. Arithmetic Operations
@@ -114,4 +82,3 @@ Test mode takes input from stdin similar to a codeforces input
   - `m` is the number of queries
 - The next `n` lines will contain expressions to set values to cells, or the `scroll_to <CELL>` command which will change the virtual viewport of the program, for lazy evaluation
 - The following `m` lines will contain queries in the form of `<CELL>` to get the **raw** value of a cell. If lazy evaluation is enabled, this may return a dirty cell with an unprocessed value.
->>>>>>> 1b12bd791c432a247631c2c61ddd100a07f00124
