@@ -79,6 +79,5 @@ Test mode takes input from stdin similar to a codeforces input
 - For each test case, the first line will contain `n` and `m`
   - `n` is the number of edits
   - `m` is the number of queries
-- The next `n` lines will contain expressions to set values to cells
-- The following `m` lines will contain queries to get the value of a cell
-  - The queries will be of the form: `<CELL>` or `scroll_to <CELL>`
+- The next `n` lines will contain expressions to set values to cells, or the `scroll_to <CELL>` command which will change the virtual viewport of the program, for lazy evaluation
+- The following `m` lines will contain queries in the form of `<CELL>` to get the **raw** value of a cell. If lazy evaluation is enabled, this may return a dirty cell with an unprocessed value.
