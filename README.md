@@ -47,6 +47,7 @@ Interactive Mode:
 - Use + and - to zoom the spreadsheet in and out
 - Press q to quit the program
 - Press tab to switch between modes
+
 Command Based:
 - Refer to CLI, basically the same in terms of functionality
 
