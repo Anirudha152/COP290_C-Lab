@@ -1,6 +1,5 @@
-#ifndef DRAW_H
-#define DRAW_H
-#include <time.h>
+#ifndef draw_h
+#define draw_h
 #include <ncurses.h>
 #include "../parsing/command_processing.h"
 
@@ -27,7 +26,7 @@ typedef struct {
     char command_input[CMD_BUFFER_SIZE];
     short cmd_pos;
     Viewport viewport;
-    Command cmd_history[CMD_HISTORY_SIZE];
+    Command* cmd_history;
     int cmd_history_count;
     int cmd_history_start;
 } DisplayState;
