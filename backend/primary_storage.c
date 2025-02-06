@@ -39,37 +39,22 @@ void destroy_storage() {
     destroy_stack_mem();
 }
 
-void initialize_expression(Expression *formula) {
-    formula->type = 0;
+void initialize_expression(Expression *expression) {
+    expression->type = VALUE;
     Value value;
-    value.type = 0;
+    value.type = INTEGER;
     value.value = 0;
-    value.cell = NULL;
-    formula->value1 = value;
-
-
-    formula->value2 = value;
-    formula->operation = 0;
-    Function function;
-    function.type = 0;
-    Range range;
-    range.start_row = 0;
-    range.start_col = 0;
-    range.end_row = 0;
-    range.end_col = 0;
-    range.dimension = 0;
-    function.range = range;
-    formula->function = function;
+    expression->value = value;
 }
 
 void initialize_cell(Cell *cell, const short row, const short col) {
     cell->row = row;
     cell->col = col;
     cell->value = 0;
-    Expression formula;
-    initialize_expression(&formula);
-    cell->formula = formula;
-    cell->state = 0;
+    Expression expression;
+    initialize_expression(&expression);
+    cell->expression = expression;
+    cell->state = CLEAN;
     cell->dependencies = NULL;
     cell->dependency_count = 0;
     cell->dependants = set_create();
@@ -81,7 +66,6 @@ int get_raw_value(const short row, const short col) {
         printf("Invalid cell reference\n");
         return 0;
     }
-
     const Cell *cell = &table[(int) row * (int) TOT_COLS + (int) col];
     return cell->value;
 }
@@ -92,13 +76,11 @@ void update_dependencies(const short *rows, const short *cols, const size_t size
         free(cell->dependencies);
         cell->dependencies = NULL;
     }
-
     Cell **dependency = malloc(sizeof(Cell *) * size);
     if (dependency == NULL) {
         printf("Memory allocation failed\n");
         exit(1);
     }
-
     for (int i = 0; i < size; i++) {
         if (rows[i] < 0 || rows[i] >= TOT_ROWS || cols[i] < 0 || cols[i] >= TOT_COLS) {
             printf("Invalid cell reference\n");
@@ -106,7 +88,6 @@ void update_dependencies(const short *rows, const short *cols, const size_t size
         }
         dependency[i] = &table[(int) rows[i] * (int) TOT_COLS + (int) cols[i]];
     }
-
     cell->dependencies = dependency;
     cell->dependency_count = size;
 }
@@ -115,9 +96,7 @@ void add_dependant(const short source_row, const short source_col, const short r
     if (row < 0 || row >= TOT_ROWS || col < 0 || col >= TOT_COLS) {
         return;
     }
-
     Cell *cell = &table[(int) source_row * (int) TOT_COLS + (int) source_col];
-
     Cell *dependant = &table[(int) row * (int) TOT_COLS + (int) col];
     set_insert(cell->dependants, dependant);
     cell->dependant_count = set_size(cell->dependants);

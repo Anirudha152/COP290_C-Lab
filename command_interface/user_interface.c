@@ -80,7 +80,7 @@ void draw_grid() {
 				const short actual_col = j + state->start_col;
 				const int value = get_cell_value(actual_row, actual_col);
 				const Cell* cell = get_cell(actual_row, actual_col);
-				if (cell->state == 9) {
+				if (cell->state == ZERO_ERROR) {
 					printf("%-*s", DEFAULT_CELL_WIDTH, "ERR");
 				} else {
 					printf("%-*d", DEFAULT_CELL_WIDTH, value);

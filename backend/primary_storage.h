@@ -3,10 +3,18 @@
 #include <stddef.h>
 struct Cell;
 
+enum ValueType {
+    INTEGER,
+    CELL_REFERENCE,
+    VALUE_ERROR
+};
+
 typedef struct {
-    short type;
-    int value;
-    struct Cell *cell;
+    enum ValueType type;
+    union {
+        int value;
+        struct Cell *cell;
+    };
 } Value;
 
 typedef struct {
@@ -17,17 +25,49 @@ typedef struct {
     short end_col;
 } Range;
 
-typedef struct {
-    short type;
-    Range range;
-} Function;
+enum FunctionType {
+    MIN,
+    MAX,
+    AVG,
+    SUM,
+    STDEV,
+    SLEEP
+};
 
 typedef struct {
-    short type;
+    enum FunctionType type;
+    union {
+        Range range;
+        Value value;
+    };
+} Function;
+
+enum ArithmeticType {
+    ADD,
+    SUBTRACT,
+    MULTIPLY,
+    DIVIDE
+};
+
+typedef struct {
+    enum ArithmeticType type;
     Value value1;
     Value value2;
-    short operation;
-    Function function;
+} Arithmetic;
+
+enum ExpressionType {
+    VALUE,
+    ARITHMETIC,
+    FUNCTION
+};
+
+typedef struct {
+    enum ExpressionType type;
+    union {
+        Value value;
+        Arithmetic arithmetic;
+        Function function;
+    };
 } Expression;
 
 typedef struct SetNode {
@@ -47,12 +87,20 @@ typedef struct {
     SetNode *current;
 } SetIterator;
 
+enum CellState {
+    CLEAN,
+    DIRTY,
+    DFS_IN_PROGRESS,
+    CIRCULAR_CHECKED,
+    ZERO_ERROR
+};
+
 typedef struct Cell {
     int value;
     short row;
     short col;
-    Expression formula;
-    short state;
+    Expression expression;
+    enum CellState state;
 
     struct Cell **dependencies;
     size_t dependency_count;
@@ -70,7 +118,7 @@ typedef struct {
 typedef struct {
     short row;
     short col;
-    short state;
+    enum CellState state;
 } Memory;
 typedef struct {
     int no_of_elements;

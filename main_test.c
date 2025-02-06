@@ -107,7 +107,7 @@ int main(const int argc, char *argv[]) {
             if (!pos) continue;
             Cell* cell = get_cell(row, col);
             char expression[CMD_BUFFER_SIZE];
-            strcpy(expression, get_expression_string(&cell->formula));
+            strcpy(expression, get_expression_string(&cell->expression));
             printf("%s : %s --> Value: %d, State: %s\n", reference, expression, cell->value, cell->state ? "Dirty" : "Clean");
         }
     }
