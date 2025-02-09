@@ -15,7 +15,7 @@ int circular_check(Cell *start_cell) {
     while (!is_stack_empty()) {
         Cell *current = stack_top();
         Memory mem = {current->row, current->col, current->state};
-        stack_push_mem(mem);
+        if (current->state == CLEAN || current->state == DIRTY) stack_push_mem(mem);
         current->state = DFS_IN_PROGRESS;
         if (current->dependant_count == 0) {
             stack_pop();
@@ -328,7 +328,7 @@ int handle_circular_connection(Cell *cell, short *rows_prev, short *cols_prev, c
         }
         // restore the dependencies from before
         cell->dependency_count = 0;
-        free(cell->dependencies);
+        if (cell->dependencies != NULL) free(cell->dependencies);
         cell->dependencies = NULL;
         for (int i = 0; i < dependencies_count; i++) {
             update_dependencies(rows_prev, cols_prev, dependencies_count, cell->row, cell->col);
@@ -358,11 +358,14 @@ int set_expression(const short row, const short col, const Expression expression
     for (int i = 0; i < dependencies_count; i++) {
         delete_dependant(dependencies[i]->row, dependencies[i]->col, row, col);
     }
+
     if (expression.type == VALUE) {
         if (expression.value.type == INTEGER) {
-            free(cell->dependencies);
-            cell->dependencies = NULL;
-            cell->dependency_count = 0;
+            if (cell->dependencies != NULL) {
+                free(cell->dependencies);
+                cell->dependencies = NULL;
+                cell->dependency_count = 0;
+            }
         } else if (expression.value.type == CELL_REFERENCE) {
             const short rows[1] = {expression.value.cell->row};
             const short cols[1] = {expression.value.cell->col};
@@ -376,9 +379,11 @@ int set_expression(const short row, const short col, const Expression expression
         const enum ValueType type1 = expression.arithmetic.value1.type;
         const enum ValueType type2 = expression.arithmetic.value2.type;
         if (type1 == INTEGER && type2 == INTEGER) {
-            free(cell->dependencies);
-            cell->dependencies = NULL;
-            cell->dependency_count = 0;
+            if (cell->dependencies != NULL) {
+                free(cell->dependencies);
+                cell->dependencies = NULL;
+                cell->dependency_count = 0;
+            }
         } else if ((type1 != CELL_REFERENCE) != (type2 != CELL_REFERENCE)) {
             const short row_ = type1 == CELL_REFERENCE ? expression.arithmetic.value1.cell->row : expression.arithmetic.value2.cell->row;
             const short col_ = type1 == CELL_REFERENCE ? expression.arithmetic.value1.cell->col : expression.arithmetic.value2.cell->col;
@@ -409,9 +414,11 @@ int set_expression(const short row, const short col, const Expression expression
         free(rows);
     } else if (expression.type == FUNCTION && expression.function.type == SLEEP) {
         if (expression.function.value.type == INTEGER) {
-            free(cell->dependencies);
-            cell->dependencies = NULL;
-            cell->dependency_count = 0;
+            if (cell->dependencies != NULL) {
+                free(cell->dependencies);
+                cell->dependencies = NULL;
+                cell->dependency_count = 0;
+            }
         } else if (expression.function.value.type == CELL_REFERENCE) {
             add_dependant(expression.function.value.cell->row, expression.function.value.cell->col, row, col);
             const short rows[1] = {expression.function.value.cell->row};

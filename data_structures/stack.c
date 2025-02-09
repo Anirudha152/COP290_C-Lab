@@ -116,7 +116,7 @@ void double_capacity_mem() {
 
 Memory stack_pop_mem() {
     if (memory_stack.no_of_elements < memory_stack.dynamic_size / 2 && memory_stack.no_of_elements > DEFAULT_SIZE) {
-        shrink_capacity();
+        shrink_capacity_mem();
     }
     memory_stack.no_of_elements -= 1;
     return memory_stack.elements[memory_stack.no_of_elements];
@@ -128,7 +128,7 @@ void stack_push_mem(Memory element) {
         exit(1);
     }
     if (memory_stack.no_of_elements == memory_stack.dynamic_size) {
-        double_capacity();
+        double_capacity_mem();
     }
     memory_stack.elements[memory_stack.no_of_elements] = element;
     memory_stack.no_of_elements += 1;

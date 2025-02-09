@@ -39,6 +39,7 @@ SOURCES_TES = parsing/command_processing.c \
 OBJECTS_CLI = $(SOURCES_CLI:.c=.o)
 OBJECTS_GUI = $(SOURCES_GUI:.c=.o)
 OBJECTS_TES = $(SOURCES_TES:.c=.o)
+ASAN_FLAGS = -fsanitize=address -fno-omit-frame-pointer -Wno-format-security
 
 $(TARGET_CLI): $(OBJECTS_CLI)
 	$(CC) $(OBJECTS_CLI) -o sheet $(LDFLAGS1)
