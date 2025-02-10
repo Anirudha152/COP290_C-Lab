@@ -220,6 +220,10 @@ Command process_expression(const char *command, const short viewport_row, const 
         const char *range_start = strchr(command, '(') + 1;
         if (func_type == SLEEP) {
             val1 = parse_value(range_start, &end, 1);
+            if (*++end != '\0') {
+                strcpy(err_message, "Extra Characters");
+                goto error;
+            }
             if (val1.type == VALUE_ERROR) {
                 strcpy(err_message, "Invalid Value");
                 goto error;
@@ -229,6 +233,10 @@ Command process_expression(const char *command, const short viewport_row, const 
             const Range range = parse_range(range_start, &end);
             if (range.dimension == 0) {
                 strcpy(err_message, "Invalid Range");
+                goto error;
+            }
+            if (*++end != '\0') {
+                strcpy(err_message, "Extra Characters");
                 goto error;
             }
             function.range = range;
@@ -251,6 +259,10 @@ Command process_expression(const char *command, const short viewport_row, const 
                 strcpy(err_message, "Invalid Value 2");
                 goto error;
             }
+            if (*++end != '\0') {
+                strcpy(err_message, "Extra Characters");
+                goto error;
+            }
             Arithmetic arithmetic;
             arithmetic.value1 = val1;
             arithmetic.value2 = val2;
@@ -262,6 +274,10 @@ Command process_expression(const char *command, const short viewport_row, const 
             }
         } else {
             const int stat = set_value_expression(row, col, val1);
+            if (*++end != '\0') {
+                strcpy(err_message, "Extra Characters");
+                goto error;
+            }
             if (!stat) {
                 strcpy(err_message, "Circular Dependency");
                 goto error;
