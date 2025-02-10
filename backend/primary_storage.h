@@ -10,12 +10,12 @@ enum ValueType {
 };
 
 typedef struct {
-    enum ValueType type;
     union {
         int value;
         struct Cell *cell;
     };
-} Value;
+    enum ValueType type;
+} __attribute__((packed)) Value;
 
 typedef struct {
     short dimension;
@@ -23,7 +23,7 @@ typedef struct {
     short start_col;
     short end_row;
     short end_col;
-} Range;
+} __attribute__((packed)) Range;
 
 enum FunctionType {
     MIN,
@@ -40,7 +40,7 @@ typedef struct {
         Range range;
         Value value;
     };
-} Function;
+} __attribute__((packed)) Function;
 
 enum ArithmeticType {
     ADD,
@@ -53,7 +53,7 @@ typedef struct {
     enum ArithmeticType type;
     Value value1;
     Value value2;
-} Arithmetic;
+} __attribute__((packed)) Arithmetic;
 
 enum ExpressionType {
     VALUE,
@@ -68,7 +68,7 @@ typedef struct {
         Arithmetic arithmetic;
         Function function;
     };
-} Expression;
+} __attribute__((packed)) Expression;
 
 typedef struct SetNode {
     struct Cell *cell;
@@ -76,12 +76,12 @@ typedef struct SetNode {
     struct SetNode *right;
     struct SetNode *parent;
     int height;
-} SetNode;
+} __attribute__((packed)) SetNode;
 
 typedef struct {
     SetNode *root;
     size_t size;
-} Set;
+} __attribute__((packed)) Set;
 
 typedef struct {
     SetNode *current;
@@ -107,7 +107,7 @@ typedef struct Cell {
 
     Set *dependants;
     size_t dependant_count;
-} Cell;
+} __attribute__((packed)) Cell;
 
 typedef struct {
     int no_of_elements;
