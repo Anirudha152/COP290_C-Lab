@@ -25,6 +25,7 @@ void print_usage(const char *program_name) {
     printf("  -v, --viewport <n>             Max number of rows/cols to display        (default 10)\n");
     printf("  -l, --lazy <0/1>               Lazy evaluation enabled                   (default 1 )\n");
     printf("  -h, --help                     Show this help message\n");
+    printf("%lu", sizeof(Value));
 }
 
 void parse_arguments(int argc, char *argv[]) {
