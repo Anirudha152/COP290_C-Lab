@@ -16,3 +16,4 @@ CMakeLists.txt
 cmake_install.cmake
 cop290
 test
+testcase.txt

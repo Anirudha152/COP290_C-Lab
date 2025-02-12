@@ -15,7 +15,7 @@ int circular_check(Cell *start_cell) {
     while (!is_stack_empty()) {
         Cell *current = stack_top();
         Memory mem = {current->row, current->col, current->state};
-        if (current->state == CLEAN || current->state == DIRTY) stack_push_mem(mem);
+        if (current->state == CLEAN || current->state == DIRTY || current->state == ZERO_ERROR) stack_push_mem(mem);
         current->state = DFS_IN_PROGRESS;
         if (current->dependant_count == 0) {
             stack_pop();
@@ -26,7 +26,7 @@ int circular_check(Cell *start_cell) {
         int done = 1;
         Cell *cell;
         while ((cell = set_iterator_next(iter)) != NULL) {
-            if (cell->state == CLEAN || cell->state == DIRTY) {
+            if (cell->state == CLEAN || cell->state == DIRTY || cell->state == ZERO_ERROR) {
                 stack_push(cell);
                 done = 0;
             } else if (cell->state == DFS_IN_PROGRESS) {
@@ -195,13 +195,13 @@ pair function_compute(const Function function) {
         ans = (int)sqrt(temp_sq / (double)size);
     } else if (type == SLEEP) {
         if (function.value.type == INTEGER) {
-            sleep(function.value.value > 0 ? function.value.value : 0);
+            // sleep(function.value.value > 0 ? function.value.value : 0);
             ans = function.value.value;
         } else if (function.value.type == CELL_REFERENCE) {
             const Cell* dep = function.value.cell;
             if (dep->state == ZERO_ERROR) goto zero_error_func;
             ans = get_raw_value(function.value.cell->row, function.value.cell->col);
-            sleep(ans > 0 ? ans : 0);
+            // sleep(ans > 0 ? ans : 0);
         } else {
             printf("Value holds Error State");
             exit(1);
