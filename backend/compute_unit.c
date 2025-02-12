@@ -98,7 +98,7 @@ void clean_cells_forward(Cell* start_cell) {
             if (cell->state == CIRCULAR_CHECKED) {
                 int flag = 1;
                 for (int i = 0; i < cell->dependency_count; i++) {
-                    if (cell->dependencies[i]->state != CLEAN) {
+                    if (cell->dependencies[i]->state != CLEAN && cell->dependencies[i]->state != ZERO_ERROR) {
                         flag = 0;
                         break;
                     }
