@@ -2,9 +2,19 @@ import os
 import xlsxwriter
 import win32com.client
 from openpyxl import load_workbook
+import re
 
-MAX_ROWS = 500
-MAX_COLS = 100
+def split_cell(cell):
+    match = re.match(r"([A-Z]+)(\d+)", cell)
+    if match:
+        return match.groups()
+    else:
+        raise ValueError(f"Invalid cell format: {cell}")
+
+
+
+MAX_ROWS = 1000
+MAX_COLS = 20000
 
 def format_range(range_str):
     """Format range for Excel formulas."""
@@ -26,8 +36,9 @@ def process_testcase(workbook, test_number, operations):
             continue
 
         cell, formula = operation.split('=')
-        col = ord(cell[0]) - ord('A')
-        row = int(cell[1:]) - 1
+        col_str, row_str = split_cell(cell)
+        col = sum((ord(char) - ord('A') + 1) * (26 ** i) for i, char in enumerate(reversed(col_str))) - 1
+        row = int(row_str) - 1
 
         if 'SLEEP' in formula:
             sleep_value = int(float(formula[formula.find('(') + 1:formula.find(')')]))
@@ -40,8 +51,7 @@ def process_testcase(workbook, test_number, operations):
             worksheet.write_formula(row, col, f'=TRUNC(AVERAGE({excel_range}))')
         elif 'STDEV' in formula:
             excel_range = format_range(formula[formula.find('(') + 1:formula.find(')')])
-            worksheet.write_formula(row, col, f'=TRUNC(STDEV({excel_range}))')
-
+            worksheet.write_formula(row, col, f'=TRUNC(SQRT((SUMPRODUCT({excel_range}, {excel_range})/COUNT({excel_range})) - (AVERAGE({excel_range})^2)))')
         elif 'MIN' in formula:
             excel_range = format_range(formula[formula.find('(') + 1:formula.find(')')])
             worksheet.write_formula(row, col, f'=MIN({excel_range})')
@@ -54,7 +64,6 @@ def process_testcase(workbook, test_number, operations):
                 worksheet.write_number(row, col, value)
             except ValueError:
                 if formula[0] != '=':
-
                     formula = f'=TRUNC({formula})'
                 worksheet.write_formula(row, col, formula)
 
