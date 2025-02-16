@@ -487,7 +487,7 @@ void clean_cell(Cell *cell)
 
 void copy_dependencies(Cell **dependencies, const size_t dependencies_count, short *rows, short *cols)
 {
-    for (int i = 0; i < dependencies_count; i++)
+    for (int i = 0; i < min(2, dependencies_count); i++)
     {
         rows[i] = dependencies[i]->row;
         cols[i] = dependencies[i]->col;
