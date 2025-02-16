@@ -561,7 +561,7 @@ int set_expression(const short row, const short col, const Expression expression
     Cell *dependency_bottom_right = cell->dependency_bottom_right;
 
     const size_t dependencies_count = cell->dependency_count;
-    short *rows_prev = malloc(dependencies_count * sizeof(short)), *cols_prev = malloc(dependencies_count * sizeof(short));
+    short *rows_prev = malloc(2 * sizeof(short)), *cols_prev = malloc(2 * sizeof(short));
     if (rows_prev == NULL || cols_prev == NULL)
     {
         printf("Memory allocation failed\n");
@@ -663,8 +663,8 @@ int set_expression(const short row, const short col, const Expression expression
     else if (expression.type == FUNCTION && expression.function.type != SLEEP)
     {
         const int size = (expression.function.range.end_row - expression.function.range.start_row + 1) * (expression.function.range.end_col - expression.function.range.start_col + 1);
-        short *rows = malloc(size * sizeof(short));
-        short *cols = malloc(size * sizeof(short));
+        short *rows = malloc(2 * sizeof(short));
+        short *cols = malloc(2 * sizeof(short));
         rows[0] = expression.function.range.start_row;
         rows[1] = expression.function.range.end_row;
         cols[0] = expression.function.range.start_col;
