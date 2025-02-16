@@ -35,14 +35,6 @@ void destroy_storage()
         for (short j = 0; j < TOT_COLS; j++)
         {
             const Cell *cell = &table[i * TOT_COLS + j];
-            if (cell->dependency_top_left != NULL)
-            {
-                free(cell->dependency_top_left);
-            }
-            if (cell->dependency_bottom_right != NULL)
-            {
-                free(cell->dependency_bottom_right);
-            }
             set_destroy(cell->dependants);
         }
     }
@@ -93,11 +85,6 @@ void update_dependencies(const short *rows, const short *cols, const size_t size
     cell->dependency_top_left = NULL;
     cell->dependency_bottom_right = NULL;
     cell->dependency_count = size;
-    if (cell->dependency_top_left == NULL || cell->dependency_bottom_right == NULL)
-    {
-        printf("Memory allocation failed\n");
-        exit(1);
-    }
     if (size == 0)
     {
         return;
