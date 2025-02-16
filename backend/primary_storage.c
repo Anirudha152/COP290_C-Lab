@@ -28,8 +28,11 @@ void destroy_storage() {
     for (short i = 0; i < TOT_ROWS; i++) {
         for (short j = 0; j < TOT_COLS; j++) {
             const Cell *cell = &table[i * TOT_COLS + j];
-            if (cell->dependencies != NULL) {
-                free(cell->dependencies);
+            if (cell->dependency_top_left != NULL) {
+                free(cell->dependency_top_left);
+            }
+            if (cell->dependency_bottom_right != NULL) {
+                free(cell->dependency_bottom_right);
             }
             set_destroy(cell->dependants);
         }
@@ -55,7 +58,8 @@ void initialize_cell(Cell *cell, const short row, const short col) {
     initialize_expression(&expression);
     cell->expression = expression;
     cell->state = CLEAN;
-    cell->dependencies = NULL;
+    cell->dependency_top_left = NULL;
+    cell->dependency_bottom_right = NULL;
     cell->dependency_count = 0;
     cell->dependants = set_create();
     cell->dependant_count = 0;
@@ -72,24 +76,43 @@ int get_raw_value(const short row, const short col) {
 
 void update_dependencies(const short *rows, const short *cols, const size_t size, const short source_row, const short source_col) {
     Cell *cell = &table[(int) source_row * TOT_COLS + source_col];
-    if (cell->dependencies != NULL) {
-        free(cell->dependencies);
-        cell->dependencies = NULL;
+    if (cell->dependency_top_left != NULL) {
+        free(cell->dependency_top_left);
+        cell->dependency_top_left = NULL;
     }
-    Cell **dependency = malloc(sizeof(Cell *) * size);
-    if (dependency == NULL) {
+    if (cell->dependency_bottom_right != NULL) {
+        free(cell->dependency_bottom_right);
+        cell->dependency_bottom_right = NULL;
+    }
+    cell->dependency_count = size;
+    cell->dependency_top_left = malloc(sizeof(Cell *));
+    cell->dependency_bottom_right = malloc(sizeof(Cell *));
+    if (cell->dependency_top_left == NULL || cell->dependency_bottom_right == NULL) {
         printf("Memory allocation failed\n");
         exit(1);
     }
-    for (int i = 0; i < size; i++) {
-        if (rows[i] < 0 || rows[i] >= TOT_ROWS || cols[i] < 0 || cols[i] >= TOT_COLS) {
-            printf("Invalid cell reference\n");
-            exit(1);
-        }
-        dependency[i] = &table[(int) rows[i] * (int) TOT_COLS + (int) cols[i]];
+    if(size == 0) {
+        return;
     }
-    cell->dependencies = dependency;
+    cell->dependency_top_left = &table[(int) rows[0] * TOT_COLS + cols[0]];
+    if(size > 1){
+        cell->dependency_bottom_right = &table[(int) rows[size - 1] * TOT_COLS + cols[size - 1]];
+    }
     cell->dependency_count = size;
+    // Cell **dependency = malloc(sizeof(Cell *) * size);
+    // if (dependency == NULL) {
+    //     printf("Memory allocation failed\n");
+    //     exit(1);
+    // }
+    // for (int i = 0; i < size; i++) {
+    //     if (rows[i] < 0 || rows[i] >= TOT_ROWS || cols[i] < 0 || cols[i] >= TOT_COLS) {
+    //         printf("Invalid cell reference\n");
+    //         exit(1);
+    //     }
+    //     dependency[i] = &table[(int) rows[i] * (int) TOT_COLS + (int) cols[i]];
+    // }
+    // cell->dependencies = dependency;
+    // cell->dependency_count = size;
 }
 
 void add_dependant(const short source_row, const short source_col, const short row, const short col) {

@@ -102,7 +102,8 @@ typedef struct Cell {
     Expression expression;
     enum CellState state;
 
-    struct Cell **dependencies;
+    struct Cell *dependency_top_left;
+    struct Cell *dependency_bottom_right;
     size_t dependency_count;
 
     Set *dependants;
