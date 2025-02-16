@@ -557,8 +557,8 @@ int handle_circular_connection(Cell *cell, short *rows_prev, short *cols_prev, c
 int set_expression(const short row, const short col, const Expression expression)
 {
     Cell *cell = get_cell(row, col);
-    Cell **dependency_top_left = cell->dependency_top_left;
-    Cell **dependency_bottom_right = cell->dependency_bottom_right;
+    Cell *dependency_top_left = cell->dependency_top_left;
+    Cell *dependency_bottom_right = cell->dependency_bottom_right;
 
     const size_t dependencies_count = cell->dependency_count;
     short *rows_prev = malloc(dependencies_count * sizeof(short)), *cols_prev = malloc(dependencies_count * sizeof(short));
