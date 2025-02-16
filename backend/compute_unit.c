@@ -570,11 +570,30 @@ int set_expression(const short row, const short col, const Expression expression
     Cell *dependencies[2];
     dependencies[0] = cell->dependency_top_left;
     dependencies[1] = cell->dependency_bottom_right;
-    copy_dependencies(dependencies, dependencies_count, rows_prev, cols_prev);
-    for (int i = 0; i < min(dependencies_count, 2); i++)
+    copy_dependencies(dependencies, min(dependencies_count, 2), rows_prev, cols_prev);
+    if (dependencies_count == 1)
     {
-        delete_dependant(dependencies[i]->row, dependencies[i]->col, row, col);
+        delete_dependant(dependencies[0]->row, dependencies[0]->col, row, col);
     }
+    if (dependencies_count == 2)
+    {
+        delete_dependant(dependencies[0]->row, dependencies[0]->col, row, col);
+        delete_dependant(dependencies[1]->row, dependencies[1]->col, row, col);
+    }
+    if (dependencies_count > 2)
+    {
+        for (short i = dependencies[0]->row; i <= dependencies[1]->row; i++)
+        {
+            for (short j = dependencies[0]->col; j <= dependencies[1]->col; j++)
+            {
+                delete_dependant(i, j, row, col);
+            }
+        }
+    }
+    // for (int i = 0; i < ; i++)
+    // {
+    //     delete_dependant(dependencies[i]->row, dependencies[i]->col, row, col);
+    // }
 
     if (expression.type == VALUE)
     {
