@@ -93,8 +93,6 @@ void update_dependencies(const short *rows, const short *cols, const size_t size
     cell->dependency_top_left = NULL;
     cell->dependency_bottom_right = NULL;
     cell->dependency_count = size;
-    cell->dependency_top_left = malloc(sizeof(Cell *));
-    cell->dependency_bottom_right = malloc(sizeof(Cell *));
     if (cell->dependency_top_left == NULL || cell->dependency_bottom_right == NULL)
     {
         printf("Memory allocation failed\n");
