@@ -14,7 +14,7 @@ def split_cell(cell):
 
 
 MAX_ROWS = 1000
-MAX_COLS = 20000
+MAX_COLS = 1000
 
 def format_range(range_str):
     """Format range for Excel formulas."""
