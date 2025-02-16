@@ -530,10 +530,6 @@ int handle_circular_connection(Cell *cell, short *rows_prev, short *cols_prev, c
         }
         // restore the dependencies from before
         cell->dependency_count = 0;
-        if (cell->dependency_top_left != NULL)
-            free(cell->dependency_top_left);
-        if (cell->dependency_bottom_right != NULL)
-            free(cell->dependency_bottom_right);
         cell->dependency_top_left = NULL;
         cell->dependency_bottom_right = NULL;
         for (int i = 0; i < dependencies_count; i++)
@@ -601,12 +597,10 @@ int set_expression(const short row, const short col, const Expression expression
         {
             if (cell->dependency_top_left != NULL)
             {
-                free(cell->dependency_top_left);
                 cell->dependency_top_left = NULL;
             }
             if (cell->dependency_bottom_right != NULL)
             {
-                free(cell->dependency_bottom_right);
                 cell->dependency_bottom_right = NULL;
             }
             cell->dependency_count = 0;
@@ -633,12 +627,10 @@ int set_expression(const short row, const short col, const Expression expression
             cell->dependency_count = 0;
             if (cell->dependency_top_left != NULL)
             {
-                free(cell->dependency_top_left);
                 cell->dependency_top_left = NULL;
             }
             if (cell->dependency_bottom_right != NULL)
             {
-                free(cell->dependency_bottom_right);
                 cell->dependency_bottom_right = NULL;
             }
         }
@@ -687,12 +679,10 @@ int set_expression(const short row, const short col, const Expression expression
             cell->dependency_count = 0;
             if (cell->dependency_top_left != NULL)
             {
-                free(cell->dependency_top_left);
                 cell->dependency_top_left = NULL;
             }
             if (cell->dependency_bottom_right != NULL)
             {
-                free(cell->dependency_bottom_right);
                 cell->dependency_bottom_right = NULL;
             }
         }

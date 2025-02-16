@@ -90,16 +90,8 @@ int get_raw_value(const short row, const short col)
 void update_dependencies(const short *rows, const short *cols, const size_t size, const short source_row, const short source_col)
 {
     Cell *cell = &table[(int)source_row * TOT_COLS + source_col];
-    if (cell->dependency_top_left != NULL)
-    {
-        free(cell->dependency_top_left);
-        cell->dependency_top_left = NULL;
-    }
-    if (cell->dependency_bottom_right != NULL)
-    {
-        free(cell->dependency_bottom_right);
-        cell->dependency_bottom_right = NULL;
-    }
+    cell->dependency_top_left = NULL;
+    cell->dependency_bottom_right = NULL;
     cell->dependency_count = size;
     cell->dependency_top_left = malloc(sizeof(Cell *));
     cell->dependency_bottom_right = malloc(sizeof(Cell *));
