@@ -3,21 +3,25 @@
 #include <stddef.h>
 struct Cell;
 
-enum ValueType {
+enum ValueType
+{
     INTEGER,
     CELL_REFERENCE,
     VALUE_ERROR
 };
 
-typedef struct {
-    union {
+typedef struct
+{
+    union
+    {
         int value;
         struct Cell *cell;
     };
-    enum ValueType type;
+    enum ValueType type : 2;
 } __attribute__((packed)) Value;
 
-typedef struct {
+typedef struct
+{
     short dimension;
     short start_row;
     short start_col;
@@ -25,7 +29,8 @@ typedef struct {
     short end_col;
 } __attribute__((packed)) Range;
 
-enum FunctionType {
+enum FunctionType
+{
     MIN,
     MAX,
     AVG,
@@ -34,43 +39,51 @@ enum FunctionType {
     SLEEP
 };
 
-typedef struct {
-    enum FunctionType type;
-    union {
+typedef struct
+{
+    enum FunctionType type : 3;
+    union
+    {
         Range range;
         Value value;
     };
 } __attribute__((packed)) Function;
 
-enum ArithmeticType {
+enum ArithmeticType
+{
     ADD,
     SUBTRACT,
     MULTIPLY,
     DIVIDE
 };
 
-typedef struct {
-    enum ArithmeticType type;
+typedef struct
+{
+    enum ArithmeticType type : 2;
     Value value1;
     Value value2;
 } __attribute__((packed)) Arithmetic;
 
-enum ExpressionType {
+enum ExpressionType
+{
     VALUE,
     ARITHMETIC,
     FUNCTION
 };
 
-typedef struct {
-    enum ExpressionType type;
-    union {
+typedef struct
+{
+    enum ExpressionType type : 2;
+    union
+    {
         Value value;
         Arithmetic arithmetic;
         Function function;
     };
 } __attribute__((packed)) Expression;
 
-typedef struct SetNode {
+typedef struct SetNode
+{
     struct Cell *cell;
     struct SetNode *left;
     struct SetNode *right;
@@ -78,16 +91,19 @@ typedef struct SetNode {
     int height;
 } __attribute__((packed)) SetNode;
 
-typedef struct {
+typedef struct
+{
     SetNode *root;
     size_t size;
 } __attribute__((packed)) Set;
 
-typedef struct {
+typedef struct
+{
     SetNode *current;
 } SetIterator;
 
-enum CellState {
+enum CellState
+{
     CLEAN,
     DIRTY,
     DFS_IN_PROGRESS,
@@ -95,12 +111,13 @@ enum CellState {
     ZERO_ERROR
 };
 
-typedef struct Cell {
+typedef struct Cell
+{
     int value;
     short row;
     short col;
     Expression expression;
-    enum CellState state;
+    enum CellState state : 3;
 
     struct Cell *dependency_top_left;
     struct Cell *dependency_bottom_right;
@@ -110,18 +127,21 @@ typedef struct Cell {
     size_t dependant_count;
 } __attribute__((packed)) Cell;
 
-typedef struct {
+typedef struct
+{
     int no_of_elements;
     int dynamic_size;
     Cell **elements;
 } Stack;
 
-typedef struct {
+typedef struct
+{
     short row;
     short col;
-    enum CellState state;
+    enum CellState state : 3;
 } Memory;
-typedef struct {
+typedef struct
+{
     int no_of_elements;
     int dynamic_size;
     Memory *elements;

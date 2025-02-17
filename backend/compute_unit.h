@@ -1,7 +1,8 @@
 #ifndef compute_unit_h
 #define compute_unit_h
 #include "primary_storage.h"
-typedef struct {
+typedef struct
+{
 	int first;
 	int second;
 } pair;
