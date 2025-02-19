@@ -51,6 +51,13 @@ void initialize_storage()
             initialize_cell(&table[i * TOT_COLS + j], i, j);
         }
     }
+    empty_expression = (Expression *)malloc(sizeof(Expression));
+    if (empty_expression == NULL)
+    {
+        printf("Memory allocation failed\n");
+        exit(1);
+    }
+    initialize_expression(empty_expression);
     initialize_expression_table();
     initialize_stack();
     initialize_stack_mem();
