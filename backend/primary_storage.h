@@ -94,7 +94,7 @@ typedef struct SetNode
 typedef struct
 {
     SetNode *root;
-    size_t size;
+    int size;
 } __attribute__((packed)) Set;
 
 typedef struct
@@ -123,7 +123,7 @@ typedef struct Cell
     short dependency_bottom_right_row;
     short dependency_bottom_right_col;
 
-    size_t dependency_count;
+    int dependency_count;
 
     Set *dependants;
 } __attribute__((packed)) Cell;
