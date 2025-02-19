@@ -88,7 +88,7 @@ typedef struct SetNode
     struct SetNode *left;
     struct SetNode *right;
     struct SetNode *parent;
-    int height;
+    int height : 8;
 } __attribute__((packed)) SetNode;
 
 typedef struct
@@ -124,7 +124,6 @@ typedef struct Cell
     size_t dependency_count;
 
     Set *dependants;
-    size_t dependant_count;
 } __attribute__((packed)) Cell;
 
 typedef struct

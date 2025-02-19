@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -c
+CFLAGS = -c -o2
 LDFLAGS1 = -lm
 LDFLAGS2 = -lm -lncurses
 TARGET_CLI = cli

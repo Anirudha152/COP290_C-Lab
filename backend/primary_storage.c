@@ -65,7 +65,6 @@ void initialize_cell(Cell *cell, const short row, const short col)
     cell->dependency_bottom_right = NULL;
     cell->dependency_count = 0;
     cell->dependants = set_create();
-    cell->dependant_count = 0;
 }
 
 int get_raw_value(const short row, const short col)
@@ -120,14 +119,12 @@ void add_dependant(const short source_row, const short source_col, const short r
     Cell *cell = &table[(int)source_row * (int)TOT_COLS + (int)source_col];
     Cell *dependant = &table[(int)row * (int)TOT_COLS + (int)col];
     set_insert(cell->dependants, dependant);
-    cell->dependant_count = set_size(cell->dependants);
 }
 
 void delete_dependant(const short source_row, const short source_col, const short row, const short col)
 {
     Cell *source = &table[(int)source_row * (int)TOT_COLS + (int)source_col];
     set_remove(source->dependants, row, col);
-    source->dependant_count = set_size(source->dependants);
 }
 
 Cell *get_cell(const short row, const short col)

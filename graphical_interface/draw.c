@@ -180,7 +180,7 @@ void draw_state() {
     wattron(state->status_win, COLOR_PAIR(2));
     wprintw(state->status_win, "\nDependant Count:  ");
     wattroff(state->status_win, COLOR_PAIR(2));
-    wprintw(state->status_win, "%lu", get_cell(state->curr_row, state->curr_col)->dependant_count);
+    wprintw(state->status_win, "%lu", set_size(get_cell(state->curr_row, state->curr_col)->dependants));
     set_iterator_destroy(iter);
     wrefresh(state->status_win);
 }

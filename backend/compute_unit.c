@@ -20,7 +20,7 @@ int circular_check(Cell *start_cell)
         if (current->state == CLEAN || current->state == DIRTY || current->state == ZERO_ERROR)
             stack_push_mem(mem);
         current->state = DFS_IN_PROGRESS;
-        if (current->dependant_count == 0)
+        if (set_size(current->dependants) == 0)
         {
             stack_pop();
             current->state = CIRCULAR_CHECKED;
@@ -74,7 +74,7 @@ void mark_dirty(Cell *start_cell)
     {
         Cell *current = stack_top();
         current->state = DFS_IN_PROGRESS;
-        if (current->dependant_count == 0)
+        if (set_size(current->dependants) == 0)
         {
             stack_pop();
             current->state = DIRTY;

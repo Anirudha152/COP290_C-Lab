@@ -151,7 +151,7 @@ def generate_testcase(min_edits=3, max_edits=10, min_queries=2, max_queries=5):
     
     return n, m, edits, queries
 
-def generate_testfile(num_testcases=5, filename="testcases.txt"):
+def generate_testfile(num_testcases=5, filename="tc1.txt"):
     with open(filename, 'w') as f:
         # Write number of testcases
         f.write(f"{num_testcases}\n")
@@ -173,4 +173,4 @@ def generate_testfile(num_testcases=5, filename="testcases.txt"):
 
 # Generate test cases
 if __name__ == "__main__":
-    generate_testfile(num_testcases=1, filename="spreadsheet_testcases.txt")
+    generate_testfile(num_testcases=1, filename="tc1.txt")

@@ -44,6 +44,13 @@ def generate_constant_assignment(dependencies):
     value = random.randint(-100, 100)
     return f"{cell}={value}", cell, True
 
+def row_no_to_character(row_no):
+    #map 1-26 to A-Z and 27-52 to AA-AZ and so on
+    if row_no <= 26:
+        return chr(64+row_no)
+    else:
+        return row_no_to_character((row_no-1)//26) + row_no_to_character((row_no-1)%26+1)
+
 def generate_reference_assignment(dependencies):
     cell = get_random_cell()
     ref_cell = get_random_cell()
@@ -149,9 +156,9 @@ def generate_sleep_function(dependencies):
 def generate_query():
     return get_random_cell()
 
-def generate_testcase(min_edits=100, max_edits=300, min_queries=20, max_queries=50):
+def generate_testcase(min_edits=300, max_edits=400, min_queries=20, max_queries=50):
     n = random.randint(min_edits, max_edits)  # Number of edits
-    m = random.randint(min_queries, max_queries)  # Number of queries
+    m = 26000  # Number of queries
     
     dependencies = DependencyGraph()
     edits = []
@@ -187,13 +194,13 @@ def generate_testcase(min_edits=100, max_edits=300, min_queries=20, max_queries=
 
     queries = []
     for i in range(26):
-        for j in range(50):
-            queries.append(f"{string.ascii_uppercase[i]}{j+1}")
+        for j in range(100):
+            queries.append(f"{row_no_to_character(i+1)}{j+1}")
 
     
-    return n, 1300, edits, queries
+    return n, 2600, edits, queries
 
-def generate_testfile(num_testcases=5, filename="testcases.txt"):
+def generate_testfile(num_testcases=5, filename="tc1.txt"):
     with open(filename, 'w') as f:
         # Write number of testcases
         f.write(f"{num_testcases}\n")
@@ -215,4 +222,4 @@ def generate_testfile(num_testcases=5, filename="testcases.txt"):
 
 # Generate test cases
 if __name__ == "__main__":
-    generate_testfile(num_testcases=1, filename="testcase.txt")
+    generate_testfile(num_testcases=1, filename="tc1.txt")

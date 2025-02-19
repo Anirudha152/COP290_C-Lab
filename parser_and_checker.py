@@ -1,7 +1,7 @@
 import os
 import xlsxwriter
-import win32com.client
 from openpyxl import load_workbook
+import subprocess
 import re
 
 def split_cell(cell):
@@ -10,8 +10,6 @@ def split_cell(cell):
         return match.groups()
     else:
         raise ValueError(f"Invalid cell format: {cell}")
-
-
 
 MAX_ROWS = 1000
 MAX_COLS = 1000
@@ -25,12 +23,12 @@ def process_testcase(workbook, test_number, operations):
     """Initialize worksheet with 0 and write operations."""
     worksheet = workbook.add_worksheet(f'Test{test_number}')
 
-    # **Step 1: Initialize entire worksheet with 0**
+    # Step 1: Initialize entire worksheet with 0
     for row in range(MAX_ROWS):
         for col in range(MAX_COLS):
             worksheet.write_number(row, col, 0)
 
-    # **Step 2: Process operations**
+    # Step 2: Process operations
     for operation in operations:
         if '=' not in operation:
             continue
@@ -68,21 +66,26 @@ def process_testcase(workbook, test_number, operations):
                 worksheet.write_formula(row, col, formula)
 
 def force_excel_recalculation(file_path):
-    """Open Excel file, force recalculation, and save computed values."""
+    """Use LibreOffice to recalculate formulas on Linux."""
     if not os.path.exists(file_path):
         print(f"Error: {file_path} not found.")
         return
 
-    excel = win32com.client.Dispatch("Excel.Application")
-    excel.Visible = False
-    excel.DisplayAlerts = False
+    try:
+        # Convert to ods and back to xlsx to force recalculation
+        subprocess.run(['soffice', '--headless', '--convert-to', 'ods', file_path],
+                       check=True, capture_output=True)
+        ods_file = file_path.replace('.xlsx', '.ods')
+        subprocess.run(['soffice', '--headless', '--convert-to', 'xlsx', ods_file],
+                       check=True, capture_output=True)
 
-    wb = excel.Workbooks.Open(os.path.abspath(file_path))
-    wb.RefreshAll()
-    excel.CalculateUntilAsyncQueriesDone()
-    wb.Save()
-    wb.Close()
-    excel.Quit()
+        # Clean up temporary ods file
+        if os.path.exists(ods_file):
+            os.remove(ods_file)
+    except subprocess.CalledProcessError as e:
+        print(f"Error during LibreOffice conversion: {e}")
+    except Exception as e:
+        print(f"Unexpected error during recalculation: {e}")
 
 def main():
     workbook_filename = 'temp.xlsx'
@@ -91,7 +94,7 @@ def main():
     workbook = xlsxwriter.Workbook(workbook_filename)
 
     # Read input
-    with open('testcase.txt', 'r') as f:
+    with open('tc1.txt', 'r') as f:
         lines = f.readlines()
 
     test_cases = int(lines[0])
@@ -112,7 +115,7 @@ def main():
 
     workbook.close()
 
-    # Force Excel to recalculate formulas
+    # Force recalculation using LibreOffice
     force_excel_recalculation(workbook_filename)
 
     # Read computed values
