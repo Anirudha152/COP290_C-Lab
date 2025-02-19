@@ -17,6 +17,5 @@ cmake_install.cmake
 cop290
 test
 testcase.txt
-*.txt
 *.xlsx
 tc_genv3.py
