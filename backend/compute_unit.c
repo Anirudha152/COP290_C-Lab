@@ -295,13 +295,11 @@ pair function_compute(const Function function)
         }
         else if (function.value.type == CELL_REFERENCE)
         {
-            const Cell *dep = get_cell(function.value.cell_row, function.value.cell_col);
+            const Cell *dep = function.value.cell;
             if (dep->state == ZERO_ERROR)
                 goto zero_error_func;
-
-            ans = get_raw_value(get_cell(function.value.cell_row, function.value.cell_col)->row, get_cell(function.value.cell_row, function.value.cell_col)->col);
-            // ans = get_raw_value(function.value.cell->row, function.value.cell->col);
-            //  sleep(ans > 0 ? ans : 0);
+            ans = get_raw_value(function.value.cell->row, function.value.cell->col);
+            // sleep(ans > 0 ? ans : 0);
         }
         else
         {
@@ -331,8 +329,8 @@ pair evaluate_cell(const Cell *cell)
         }
         else if (value.type == CELL_REFERENCE)
         {
-            eval = get_cell(value.cell_row, value.cell_col)->value;
-            if (get_cell(value.cell_row, value.cell_col)->state == ZERO_ERROR)
+            eval = value.cell->value;
+            if (value.cell->state == ZERO_ERROR)
                 goto zero_error;
         }
         else
@@ -354,8 +352,8 @@ pair evaluate_cell(const Cell *cell)
         }
         else if (value1.type == CELL_REFERENCE)
         {
-            val1 = get_cell(value1.cell_row, value1.cell_col)->value;
-            if (get_cell(value1.cell_row, value1.cell_col)->state == ZERO_ERROR)
+            val1 = value1.cell->value;
+            if (value1.cell->state == ZERO_ERROR)
                 goto zero_error;
         }
         else
@@ -370,8 +368,8 @@ pair evaluate_cell(const Cell *cell)
         }
         else if (value2.type == CELL_REFERENCE)
         {
-            val2 = get_cell(value2.cell_row, value2.cell_col)->value;
-            if (get_cell(value2.cell_row, value2.cell_col)->state == ZERO_ERROR)
+            val2 = value2.cell->value;
+            if (value2.cell->state == ZERO_ERROR)
                 goto zero_error;
         }
         else
@@ -614,10 +612,10 @@ int set_expression(const short row, const short col, const Expression expression
         }
         else if (expression.value.type == CELL_REFERENCE)
         {
-            const short rows[1] = {expression.value.cell_row};
-            const short cols[1] = {expression.value.cell_col};
+            const short rows[1] = {expression.value.cell->row};
+            const short cols[1] = {expression.value.cell->col};
             update_dependencies(rows, cols, 1, row, col);
-            add_dependant(expression.value.cell_row, expression.value.cell_col, row, col);
+            add_dependant(expression.value.cell->row, expression.value.cell->col, row, col);
         }
         else
         {
@@ -642,11 +640,12 @@ int set_expression(const short row, const short col, const Expression expression
                 cell->dependency_bottom_right_row = -1;
                 cell->dependency_bottom_right_col = -1;
             }
+
         }
         else if ((type1 != CELL_REFERENCE) != (type2 != CELL_REFERENCE))
         {
-            const short row_ = type1 == CELL_REFERENCE ? expression.arithmetic.value1.cell_row : expression.arithmetic.value2.cell_row;
-            const short col_ = type1 == CELL_REFERENCE ? expression.arithmetic.value1.cell_col : expression.arithmetic.value2.cell_col;
+            const short row_ = type1 == CELL_REFERENCE ? expression.arithmetic.value1.cell->row : expression.arithmetic.value2.cell->row;
+            const short col_ = type1 == CELL_REFERENCE ? expression.arithmetic.value1.cell->col : expression.arithmetic.value2.cell->col;
             const short rows[1] = {row_};
             const short cols[1] = {col_};
             update_dependencies(rows, cols, 1, row, col);
@@ -654,11 +653,11 @@ int set_expression(const short row, const short col, const Expression expression
         }
         else
         {
-            const short rows[2] = {expression.arithmetic.value1.cell_row, expression.arithmetic.value2.cell_row};
-            const short cols[2] = {expression.arithmetic.value1.cell_col, expression.arithmetic.value2.cell_col};
+            const short rows[2] = {expression.arithmetic.value1.cell->row, expression.arithmetic.value2.cell->row};
+            const short cols[2] = {expression.arithmetic.value1.cell->col, expression.arithmetic.value2.cell->col};
             update_dependencies(rows, cols, 2, row, col);
-            add_dependant(expression.arithmetic.value1.cell_row, expression.arithmetic.value1.cell_col, row, col);
-            add_dependant(expression.arithmetic.value2.cell_row, expression.arithmetic.value2.cell_col, row, col);
+            add_dependant(expression.arithmetic.value1.cell->row, expression.arithmetic.value1.cell->col, row, col);
+            add_dependant(expression.arithmetic.value2.cell->row, expression.arithmetic.value2.cell->col, row, col);
         }
     }
     else if (expression.type == FUNCTION && expression.function.type != SLEEP)
@@ -699,9 +698,9 @@ int set_expression(const short row, const short col, const Expression expression
         }
         else if (expression.function.value.type == CELL_REFERENCE)
         {
-            add_dependant(expression.function.value.cell_row, expression.function.value.cell_col, row, col);
-            const short rows[1] = {expression.function.value.cell_row};
-            const short cols[1] = {expression.function.value.cell_col};
+            add_dependant(expression.function.value.cell->row, expression.function.value.cell->col, row, col);
+            const short rows[1] = {expression.function.value.cell->row};
+            const short cols[1] = {expression.function.value.cell->col};
             update_dependencies(rows, cols, 1, row, col);
         }
     }
