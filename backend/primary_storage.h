@@ -118,9 +118,11 @@ typedef struct Cell
     short col;
     Expression expression;
     enum CellState state : 3;
+    short dependency_top_left_row;
+    short dependency_top_left_col;
+    short dependency_bottom_right_row;
+    short dependency_bottom_right_col;
 
-    struct Cell *dependency_top_left;
-    struct Cell *dependency_bottom_right;
     size_t dependency_count;
 
     Set *dependants;

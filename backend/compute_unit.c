@@ -120,27 +120,27 @@ void clean_cells_forward(Cell *start_cell)
                 int flag = 1;
                 if (cell->dependency_count == 1)
                 {
-                    if (cell->dependency_top_left->state != CLEAN && cell->dependency_top_left->state != ZERO_ERROR)
+                    if (get_cell(cell->dependency_top_left_row, cell->dependency_top_left_col)->state != CLEAN && get_cell(cell->dependency_top_left_row, cell->dependency_top_left_col)->state != ZERO_ERROR)
                     {
                         flag = 0;
                     }
                 }
                 if (cell->dependency_count == 2)
                 {
-                    if (cell->dependency_top_left->state != CLEAN && cell->dependency_top_left->state != ZERO_ERROR)
+                    if (get_cell(cell->dependency_top_left_row, cell->dependency_top_left_col)->state != CLEAN && get_cell(cell->dependency_top_left_row, cell->dependency_top_left_col)->state != ZERO_ERROR)
                     {
                         flag = 0;
                     }
-                    else if (cell->dependency_bottom_right->state != CLEAN && cell->dependency_bottom_right->state != ZERO_ERROR)
+                    else if (get_cell(cell->dependency_bottom_right_row, cell->dependency_bottom_right_col)->state != CLEAN && get_cell(cell->dependency_bottom_right_row, cell->dependency_bottom_right_col)->state != ZERO_ERROR)
                     {
                         flag = 0;
                     }
                 }
                 if (cell->dependency_count > 2)
                 {
-                    for (short i = cell->dependency_top_left->row; i <= cell->dependency_bottom_right->row; i++)
+                    for (short i = cell->dependency_top_left_row; i <= cell->dependency_bottom_right_row; i++)
                     {
-                        for (short j = cell->dependency_top_left->col; j <= cell->dependency_bottom_right->col; j++)
+                        for (short j = cell->dependency_top_left_col; j <= cell->dependency_bottom_right_col; j++)
                         {
                             Cell *dependency_cell = get_cell(i, j);
                             if (dependency_cell->state != CLEAN && dependency_cell->state != ZERO_ERROR)
@@ -428,30 +428,30 @@ void clean_cell(Cell *cell)
         int need_to_process_dependencies = 0;
         if (current_cell->dependency_count == 1)
         {
-            if (current_cell->dependency_top_left->state == DIRTY)
+            if (get_cell(current_cell->dependency_top_left_row, current_cell->dependency_top_left_col)->state == DIRTY)
             {
-                stack_push(current_cell->dependency_top_left);
+                stack_push(get_cell(current_cell->dependency_top_left_row, current_cell->dependency_top_left_col));
                 need_to_process_dependencies = 1;
             }
         }
         if (current_cell->dependency_count == 2)
         {
-            if (current_cell->dependency_top_left->state == DIRTY)
+            if (get_cell(current_cell->dependency_top_left_row, current_cell->dependency_top_left_col)->state == DIRTY)
             {
-                stack_push(current_cell->dependency_top_left);
+                stack_push(get_cell(current_cell->dependency_top_left_row, current_cell->dependency_top_left_col));
                 need_to_process_dependencies = 1;
             }
-            else if (current_cell->dependency_bottom_right->state == DIRTY)
+            else if (get_cell(current_cell->dependency_top_left_row, current_cell->dependency_top_left_col)->state == DIRTY)
             {
-                stack_push(current_cell->dependency_bottom_right);
+                stack_push(get_cell(current_cell->dependency_bottom_right_row, current_cell->dependency_bottom_right_col));
                 need_to_process_dependencies = 1;
             }
         }
         if (current_cell->dependency_count > 2)
         {
-            for (short i = current_cell->dependency_top_left->row; i <= current_cell->dependency_bottom_right->row; i++)
+            for (short i = current_cell->dependency_top_left_row; i <= current_cell->dependency_bottom_right_row; i++)
             {
-                for (short j = current_cell->dependency_top_left->col; j <= current_cell->dependency_bottom_right->col; j++)
+                for (short j = current_cell->dependency_top_left_col; j <= current_cell->dependency_bottom_right_col; j++)
                 {
                     Cell *dependency_cell = get_cell(i, j);
                     if (dependency_cell->state == DIRTY)
@@ -502,18 +502,18 @@ int handle_circular_connection(Cell *cell, short *rows_prev, short *cols_prev, c
         // delete current cell as a dependant from its new dependencies
         if (cell->dependency_count == 1)
         {
-            delete_dependant(cell->dependency_top_left->row, cell->dependency_top_left->col, cell->row, cell->col);
+            delete_dependant(cell->dependency_top_left_row, cell->dependency_top_left_col, cell->row, cell->col);
         }
         if (cell->dependency_count == 2)
         {
-            delete_dependant(cell->dependency_top_left->row, cell->dependency_top_left->col, cell->row, cell->col);
-            delete_dependant(cell->dependency_bottom_right->row, cell->dependency_bottom_right->col, cell->row, cell->col);
+            delete_dependant(cell->dependency_top_left_row, cell->dependency_top_left_col, cell->row, cell->col);
+            delete_dependant(cell->dependency_bottom_right_row, cell->dependency_bottom_right_col, cell->row, cell->col);
         }
         if (cell->dependency_count > 2)
         {
-            for (short i = cell->dependency_top_left->row; i <= cell->dependency_bottom_right->row; i++)
+            for (short i = cell->dependency_top_left_row; i <= cell->dependency_bottom_right_row; i++)
             {
-                for (short j = cell->dependency_top_left->col; j <= cell->dependency_bottom_right->col; j++)
+                for (short j = cell->dependency_top_left_col; j <= cell->dependency_bottom_right_col; j++)
                 {
                     Cell *dependency_cell = get_cell(i, j);
                     delete_dependant(dependency_cell->row, dependency_cell->col, cell->row, cell->col);
@@ -530,8 +530,10 @@ int handle_circular_connection(Cell *cell, short *rows_prev, short *cols_prev, c
         }
         // restore the dependencies from before
         cell->dependency_count = 0;
-        cell->dependency_top_left = NULL;
-        cell->dependency_bottom_right = NULL;
+        cell->dependency_top_left_row = -1;
+        cell->dependency_top_left_col = -1;
+        cell->dependency_bottom_right_row = -1;
+        cell->dependency_bottom_right_col = -1;
         for (int i = 0; i < dependencies_count; i++)
         {
             update_dependencies(rows_prev, cols_prev, dependencies_count, cell->row, cell->col);
@@ -553,8 +555,8 @@ int handle_circular_connection(Cell *cell, short *rows_prev, short *cols_prev, c
 int set_expression(const short row, const short col, const Expression expression)
 {
     Cell *cell = get_cell(row, col);
-    Cell *dependency_top_left = cell->dependency_top_left;
-    Cell *dependency_bottom_right = cell->dependency_bottom_right;
+    Cell *dependency_top_left = get_cell(cell->dependency_top_left_row, cell->dependency_top_left_col);
+    Cell *dependency_bottom_right = get_cell(cell->dependency_bottom_right_row, cell->dependency_bottom_right_col);
 
     const size_t dependencies_count = cell->dependency_count;
     short *rows_prev = malloc(2 * sizeof(short)), *cols_prev = malloc(2 * sizeof(short));
@@ -564,8 +566,8 @@ int set_expression(const short row, const short col, const Expression expression
         exit(1);
     }
     Cell *dependencies[2];
-    dependencies[0] = cell->dependency_top_left;
-    dependencies[1] = cell->dependency_bottom_right;
+    dependencies[0] = get_cell(cell->dependency_top_left_row, cell->dependency_top_left_col);
+    dependencies[1] = get_cell(cell->dependency_bottom_right_row, cell->dependency_bottom_right_col);
     copy_dependencies(dependencies, min(dependencies_count, 2), rows_prev, cols_prev);
     if (dependencies_count == 1)
     {
@@ -595,14 +597,17 @@ int set_expression(const short row, const short col, const Expression expression
     {
         if (expression.value.type == INTEGER)
         {
-            if (cell->dependency_top_left != NULL)
+            if (cell->dependency_top_left_row != -1 && cell->dependency_top_left_col != -1)
             {
-                cell->dependency_top_left = NULL;
+                cell->dependency_top_left_row = -1;
+                cell->dependency_top_left_col = -1;
             }
-            if (cell->dependency_bottom_right != NULL)
+            if (cell->dependency_bottom_right_row != -1 && cell->dependency_bottom_right_col != -1)
             {
-                cell->dependency_bottom_right = NULL;
+                cell->dependency_bottom_right_row = -1;
+                cell->dependency_bottom_right_col = -1;
             }
+
             cell->dependency_count = 0;
         }
         else if (expression.value.type == CELL_REFERENCE)
@@ -625,14 +630,17 @@ int set_expression(const short row, const short col, const Expression expression
         if (type1 == INTEGER && type2 == INTEGER)
         {
             cell->dependency_count = 0;
-            if (cell->dependency_top_left != NULL)
+            if (cell->dependency_top_left_row != -1 && cell->dependency_top_left_col != -1)
             {
-                cell->dependency_top_left = NULL;
+                cell->dependency_top_left_row = -1;
+                cell->dependency_top_left_col = -1;
             }
-            if (cell->dependency_bottom_right != NULL)
+            if (cell->dependency_bottom_right_row != -1 && cell->dependency_bottom_right_col != -1)
             {
-                cell->dependency_bottom_right = NULL;
+                cell->dependency_bottom_right_row = -1;
+                cell->dependency_bottom_right_col = -1;
             }
+
         }
         else if ((type1 != CELL_REFERENCE) != (type2 != CELL_REFERENCE))
         {
@@ -677,13 +685,15 @@ int set_expression(const short row, const short col, const Expression expression
         if (expression.function.value.type == INTEGER)
         {
             cell->dependency_count = 0;
-            if (cell->dependency_top_left != NULL)
+            if (cell->dependency_top_left_row != -1 && cell->dependency_top_left_col != -1)
             {
-                cell->dependency_top_left = NULL;
+                cell->dependency_top_left_row = -1;
+                cell->dependency_top_left_col = -1;
             }
-            if (cell->dependency_bottom_right != NULL)
+            if (cell->dependency_bottom_right_row != -1 && cell->dependency_bottom_right_col != -1)
             {
-                cell->dependency_bottom_right = NULL;
+                cell->dependency_bottom_right_row = -1;
+                cell->dependency_bottom_right_col = -1;
             }
         }
         else if (expression.function.value.type == CELL_REFERENCE)

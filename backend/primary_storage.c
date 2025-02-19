@@ -61,8 +61,10 @@ void initialize_cell(Cell *cell, const short row, const short col)
     initialize_expression(&expression);
     cell->expression = expression;
     cell->state = CLEAN;
-    cell->dependency_top_left = NULL;
-    cell->dependency_bottom_right = NULL;
+    cell->dependency_top_left_row = -1;
+    cell->dependency_top_left_col = -1;
+    cell->dependency_bottom_right_row = -1;
+    cell->dependency_bottom_right_col = -1;
     cell->dependency_count = 0;
     cell->dependants = set_create();
 }
@@ -81,18 +83,23 @@ int get_raw_value(const short row, const short col)
 void update_dependencies(const short *rows, const short *cols, const size_t size, const short source_row, const short source_col)
 {
     Cell *cell = &table[(int)source_row * TOT_COLS + source_col];
-    cell->dependency_top_left = NULL;
-    cell->dependency_bottom_right = NULL;
+    cell->dependency_top_left_row = -1;
+    cell->dependency_top_left_col = -1;
+    cell->dependency_bottom_right_row = -1;
+    cell->dependency_bottom_right_col = -1;
     cell->dependency_count = size;
     if (size == 0)
     {
         return;
     }
-    cell->dependency_top_left = &table[(int)rows[0] * TOT_COLS + cols[0]];
+    cell->dependency_top_left_row = rows[0];
+    cell->dependency_top_left_col = cols[0];
     if (size > 1)
     {
-        cell->dependency_bottom_right = &table[(int)rows[1] * TOT_COLS + cols[1]];
+        cell->dependency_bottom_right_row = rows[1];
+        cell->dependency_bottom_right_col = cols[1];
     }
+
     cell->dependency_count = size;
     // Cell **dependency = malloc(sizeof(Cell *) * size);
     // if (dependency == NULL) {
