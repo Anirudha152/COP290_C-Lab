@@ -5,6 +5,13 @@
 #include "../data_structures/set.h"
 
 Cell *table;
+typedef struct Expression_table{
+    Expression* expressions;
+    int size;
+    int capacity;
+} Expression_table;
+
+Expression_table* expression_table;
 
 void initialize_storage()
 {
@@ -24,10 +31,42 @@ void initialize_storage()
             initialize_cell(&table[i * TOT_COLS + j], i, j);
         }
     }
+    initialize_expression_table();
     initialize_stack();
     initialize_stack_mem();
 }
 
+void initialize_expression_table(){
+    expression_table = (Expression_table*)malloc(sizeof(Expression_table));
+    if(expression_table == NULL){
+        printf("Memory allocation failed\n");
+        exit(1);
+    }
+    expression_table->size = 0;
+    expression_table->capacity = 8;
+    expression_table->expressions = (Expression*)malloc(sizeof(Expression) * expression_table->capacity);
+    if(expression_table->expressions == NULL){
+        printf("Memory allocation failed\n");
+        exit(1);
+    }
+}
+
+void destroy_expression_table(){
+    free(expression_table->expressions);
+    free(expression_table);
+}
+
+int expression_index(){
+    if(expression_table->size == expression_table->capacity){
+        expression_table->capacity *= 2;
+        expression_table->expressions = (Expression*)realloc(expression_table->expressions, sizeof(Expression) * expression_table->capacity);
+        if(expression_table->expressions == NULL){
+            printf("Memory allocation failed\n");
+            exit(1);
+        }
+    }
+    return expression_table->size++;
+}
 void destroy_storage()
 {
     for (short i = 0; i < TOT_ROWS; i++)
@@ -39,6 +78,7 @@ void destroy_storage()
         }
     }
     free(table);
+    destroy_expression_table();
     destroy_stack();
     destroy_stack_mem();
 }
@@ -57,9 +97,7 @@ void initialize_cell(Cell *cell, const short row, const short col)
     cell->row = row;
     cell->col = col;
     cell->value = 0;
-    Expression expression;
-    initialize_expression(&expression);
-    cell->expression = expression;
+    cell->expression_index = -1;
     cell->state = CLEAN;
     cell->dependency_top_left_row = -1;
     cell->dependency_top_left_col = -1;
@@ -137,4 +175,25 @@ void delete_dependant(const short source_row, const short source_col, const shor
 Cell *get_cell(const short row, const short col)
 {
     return &table[(int)row * (int)TOT_COLS + (int)col];
+}
+
+Expression *get_expression(const short row, const short col)
+{
+    const Cell *cell = get_cell(row, col);
+    if (cell->expression_index == -1)
+    {
+        return NULL;
+    }
+    return &expression_table->expressions[cell->expression_index];
+}
+
+void set_expression_index(short row, short col, Expression expression){
+    Cell *cell = get_cell(row, col);
+    if(cell->expression_index != -1){
+        expression_table->expressions[cell->expression_index] = expression;
+    }else{
+        const int index = expression_index();
+        cell->expression_index = index;
+        expression_table->expressions[index] = expression;
+    }
 }

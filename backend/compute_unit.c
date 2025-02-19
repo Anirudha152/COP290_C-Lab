@@ -318,7 +318,7 @@ zero_error_func:
 
 pair evaluate_cell(const Cell *cell)
 {
-    const Expression expression = cell->expression;
+    const Expression expression = *(get_expression(cell->row, cell->col));
     int eval = 0;
     if (expression.type == VALUE)
     {
@@ -542,7 +542,8 @@ int handle_circular_connection(Cell *cell, short *rows_prev, short *cols_prev, c
         free(cols_prev);
         return 0;
     }
-    cell->expression = expression;
+
+    set_expression_index(cell->row, cell->col, expression);
     if (LAZY_EVALUATION)
         mark_dirty(cell);
     else

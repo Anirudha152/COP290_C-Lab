@@ -116,7 +116,7 @@ typedef struct Cell
     int value;
     short row;
     short col;
-    Expression expression;
+    int expression_index;
     enum CellState state : 3;
     short dependency_top_left_row;
     short dependency_top_left_col;
@@ -161,6 +161,10 @@ int get_raw_value(short row, short col);
 Cell *get_cell(short row, short col);
 
 void add_dependant(short source_row, short source_col, short row, short col);
+
+Expression *get_expression(short row, short col);
+
+void set_expression_index(short row, short col, Expression expression);
 
 void delete_dependant(short source_row, short source_col, short row, short col);
 
