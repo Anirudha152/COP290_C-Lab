@@ -5,13 +5,32 @@
 #include "../data_structures/set.h"
 
 Cell *table;
-typedef struct Expression_table{
-    Expression* expressions;
+typedef struct Expression_table
+{
+    Expression *expressions;
     int size;
     int capacity;
 } Expression_table;
 
-Expression_table* expression_table;
+Expression_table *expression_table;
+
+void initialize_expression_table()
+{
+    expression_table = (Expression_table *)malloc(sizeof(Expression_table));
+    if (expression_table == NULL)
+    {
+        printf("Memory allocation failed\n");
+        exit(1);
+    }
+    expression_table->size = 0;
+    expression_table->capacity = 8;
+    expression_table->expressions = (Expression *)malloc(sizeof(Expression) * expression_table->capacity);
+    if (expression_table->expressions == NULL)
+    {
+        printf("Memory allocation failed\n");
+        exit(1);
+    }
+}
 
 void initialize_storage()
 {
@@ -36,31 +55,20 @@ void initialize_storage()
     initialize_stack_mem();
 }
 
-void initialize_expression_table(){
-    expression_table = (Expression_table*)malloc(sizeof(Expression_table));
-    if(expression_table == NULL){
-        printf("Memory allocation failed\n");
-        exit(1);
-    }
-    expression_table->size = 0;
-    expression_table->capacity = 8;
-    expression_table->expressions = (Expression*)malloc(sizeof(Expression) * expression_table->capacity);
-    if(expression_table->expressions == NULL){
-        printf("Memory allocation failed\n");
-        exit(1);
-    }
-}
-
-void destroy_expression_table(){
+void destroy_expression_table()
+{
     free(expression_table->expressions);
     free(expression_table);
 }
 
-int expression_index(){
-    if(expression_table->size == expression_table->capacity){
+int expression_index()
+{
+    if (expression_table->size == expression_table->capacity)
+    {
         expression_table->capacity *= 2;
-        expression_table->expressions = (Expression*)realloc(expression_table->expressions, sizeof(Expression) * expression_table->capacity);
-        if(expression_table->expressions == NULL){
+        expression_table->expressions = (Expression *)realloc(expression_table->expressions, sizeof(Expression) * expression_table->capacity);
+        if (expression_table->expressions == NULL)
+        {
             printf("Memory allocation failed\n");
             exit(1);
         }
@@ -187,11 +195,15 @@ Expression *get_expression(const short row, const short col)
     return &expression_table->expressions[cell->expression_index];
 }
 
-void set_expression_index(short row, short col, Expression expression){
+void set_expression_index(short row, short col, Expression expression)
+{
     Cell *cell = get_cell(row, col);
-    if(cell->expression_index != -1){
+    if (cell->expression_index != -1)
+    {
         expression_table->expressions[cell->expression_index] = expression;
-    }else{
+    }
+    else
+    {
         const int index = expression_index();
         cell->expression_index = index;
         expression_table->expressions[index] = expression;
