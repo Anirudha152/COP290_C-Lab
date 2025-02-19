@@ -7,6 +7,6 @@ typedef struct {
     int status;
     char error_msg[64];
 } Command;
-char *get_expression_string(const Expression expression);
+char *get_expression_string(const Expression* expression);
 Command process_expression(const char *command, short viewport_row, short viewport_col);
 #endif

@@ -108,22 +108,22 @@ Range parse_range(const char *expr, char **end) {
     return range;
 }
 
-char *get_expression_string(const Expression expression) {
+char *get_expression_string(const Expression* expression) {
     static char buffer[CMD_BUFFER_SIZE];
     buffer[0] = '\0';
-    if (expression.type == VALUE) {
-        if (expression.value.type == INTEGER) {
-            snprintf(buffer, CMD_BUFFER_SIZE, "%d", expression.value.value);
-        } else if (expression.value.type == CELL_REFERENCE) {
+    if (expression->type == VALUE) {
+        if (expression->value.type == INTEGER) {
+            snprintf(buffer, CMD_BUFFER_SIZE, "%d", expression->value.value);
+        } else if (expression->value.type == CELL_REFERENCE) {
             char col_label[MAX_COL_LABEL];
-            col_index_to_label(expression.value.cell->col, col_label);
-            snprintf(buffer, CMD_BUFFER_SIZE, "%s%d", col_label, expression.value.cell->row + 1);
+            col_index_to_label(expression->value.cell->col, col_label);
+            snprintf(buffer, CMD_BUFFER_SIZE, "%s%d", col_label, expression->value.cell->row + 1);
         } else {
             printf("Value holds Error State");
             exit(1);
         }
-    } else if (expression.type == ARITHMETIC) {
-        const Arithmetic arithmetic = expression.arithmetic;
+    } else if (expression->type == ARITHMETIC) {
+        const Arithmetic arithmetic = expression->arithmetic;
         const char op = arithmetic.type == ADD
                             ? '+'
                             : arithmetic.type == SUBTRACT
@@ -148,37 +148,37 @@ char *get_expression_string(const Expression expression) {
             col_index_to_label(arithmetic.value2.cell->col, col_label2);
             snprintf(buffer, CMD_BUFFER_SIZE, "%s%d %c %s%d", col_label, arithmetic.value1.cell->row + 1, op, col_label2, arithmetic.value2.cell->row + 1);
         }
-    } else if (expression.type == FUNCTION) {
+    } else if (expression->type == FUNCTION) {
         char function_name[6];
-        if (expression.function.type == MIN) {
+        if (expression->function.type == MIN) {
             snprintf(function_name, 6, "MIN");
-        } else if (expression.function.type == MAX) {
+        } else if (expression->function.type == MAX) {
             snprintf(function_name, 6, "MAX");
-        } else if (expression.function.type == AVG) {
+        } else if (expression->function.type == AVG) {
             snprintf(function_name, 6, "AVG");
-        } else if (expression.function.type == SUM) {
+        } else if (expression->function.type == SUM) {
             snprintf(function_name, 6, "SUM");
-        } else if (expression.function.type == STDEV) {
+        } else if (expression->function.type == STDEV) {
             snprintf(function_name, 6, "STDEV");
-        } else if (expression.function.type == SLEEP) {
+        } else if (expression->function.type == SLEEP) {
             snprintf(function_name, 6, "SLEEP");
         }
-        if (expression.function.type == SLEEP) {
-            if (expression.function.value.type == INTEGER) {
-                snprintf(buffer, CMD_BUFFER_SIZE, "%s(%d)", function_name, expression.function.value.value);
+        if (expression->function.type == SLEEP) {
+            if (expression->function.value.type == INTEGER) {
+                snprintf(buffer, CMD_BUFFER_SIZE, "%s(%d)", function_name, expression->function.value.value);
             } else {
                 char col_label[MAX_COL_LABEL];
-                col_index_to_label(expression.function.value.cell->col, col_label);
+                col_index_to_label(expression->function.value.cell->col, col_label);
                 snprintf(buffer, CMD_BUFFER_SIZE, "%s(%s%d)", function_name, col_label,
-                         expression.function.value.cell->row + 1);
+                         expression->function.value.cell->row + 1);
             }
         } else {
             char start_col_label[MAX_COL_LABEL];
-            col_index_to_label(expression.function.range.start_col, start_col_label);
+            col_index_to_label(expression->function.range.start_col, start_col_label);
             char end_col_label[MAX_COL_LABEL];
-            col_index_to_label(expression.function.range.end_col, end_col_label);
+            col_index_to_label(expression->function.range.end_col, end_col_label);
             snprintf(buffer, CMD_BUFFER_SIZE, "%s(%s%d:%s%d)", function_name, start_col_label,
-                     expression.function.range.start_row + 1, end_col_label, expression.function.range.end_row + 1);
+                     expression->function.range.start_row + 1, end_col_label, expression->function.range.end_row + 1);
         }
     }
 
