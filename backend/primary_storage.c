@@ -13,6 +13,7 @@ typedef struct Expression_table
 } Expression_table;
 
 Expression_table *expression_table;
+Expression* empty_expression;
 
 void initialize_expression_table()
 {
