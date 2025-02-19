@@ -13,7 +13,6 @@ typedef struct Expression_table
 } Expression_table;
 
 Expression_table *expression_table;
-Expression *empty_expression;
 
 void initialize_expression_table()
 {
@@ -51,7 +50,6 @@ void initialize_storage()
             initialize_cell(&table[i * TOT_COLS + j], i, j);
         }
     }
-    initialize_expression(empty_expression);
     initialize_expression_table();
     initialize_stack();
     initialize_stack_mem();
@@ -192,7 +190,7 @@ Expression *get_expression(const short row, const short col)
     const Cell *cell = get_cell(row, col);
     if (cell->expression_index == -1)
     {
-        return empty_expression;
+        return NULL;
     }
     return &expression_table->expressions[cell->expression_index];
 }
