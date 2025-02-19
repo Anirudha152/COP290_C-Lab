@@ -154,7 +154,7 @@ void destroy_storage();
 
 void initialize_cell(Cell *cell, short row, short col);
 
-void update_dependencies(const short *rows, const short *cols, size_t size, short source_row, short source_col);
+void update_dependencies(const short *rows, const short *cols, int size, short source_row, short source_col);
 
 int get_raw_value(short row, short col);
 

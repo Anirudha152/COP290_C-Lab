@@ -80,7 +80,7 @@ int get_raw_value(const short row, const short col)
     return cell->value;
 }
 
-void update_dependencies(const short *rows, const short *cols, const size_t size, const short source_row, const short source_col)
+void update_dependencies(const short *rows, const short *cols, const int size, const short source_row, const short source_col)
 {
     Cell *cell = &table[(int)source_row * TOT_COLS + source_col];
     cell->dependency_top_left_row = -1;
