@@ -3,11 +3,10 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <time.h>
-
+#include <regex.h>
 #include "../constants.h"
 #include "../backend/compute_unit.h"
 #include "../backend/primary_storage.h"
-#include "../graphical_interface/draw.h"
 #include "cell_indexing.h"
 #include "command_processing.h"
 
@@ -188,14 +187,41 @@ char *get_expression_string(const Expression *expression) {
 
 Command process_expression(const char *command, const short viewport_row, const short viewport_col) {
     struct timespec start, finish, delta;
+    Command com;
+    strcpy(com.command, command);
+
     if (GUI) {
         clock_gettime(CLOCK_REALTIME, &start);
     }
+
+    regex_t regex;
+    int regex_result;
+    char regex_pattern[] = "^[A-Z]{1,3}[1-9]{1,1}[0-9]{0,2}\\=((SUM|MAX|MIN|AVG|STDEV)\\([A-Z]{1,3}[1-9]{1,1}[0-9]{0,2}\\:[A-Z]{1,3}[1-9]{1,1}[0-9]{0,2}\\)|SLEEP\\((-?[0-9]{1,}|[A-Z]{1,3}[1-9]{1,1}[0-9]{0,2})\\)|(-?[0-9]{1,}|[A-Z]{1,3}[1-9]{1,1}[0-9]{0,2})[\\+\\-\\*\\/](-?[0-9]{1,}|[A-Z]{1,3}[1-9]{1,1}[0-9]{0,2})|(-?[0-9]{1,}|[A-Z]{1,3}[1-9]{1,1}[0-9]{0,2}))$";
+
+    if (regcomp(&regex, regex_pattern, REG_EXTENDED) != 0) {
+        strcpy(com.error_msg, "Internal Regex Compilation Error");
+        com.status = 0;
+        if (GUI) {
+            clock_gettime(CLOCK_REALTIME, &finish);
+            com.time_taken = sub_timespec(start, finish, &delta);
+        }
+        return com;
+    }
+
+    regex_result = regexec(&regex, command, 0, NULL, 0);
+    regfree(&regex);
+    if (regex_result != 0) {
+        strcpy(com.error_msg, "Parsing Error");
+        com.status = 0;
+        if (GUI) {
+            clock_gettime(CLOCK_REALTIME, &finish);
+            com.time_taken = sub_timespec(start, finish, &delta);
+        }
+        return com;
+    }
     char *end;
     Value val1;
-    Command com;
     char err_message[64];
-    strcpy(com.command, command);
     short row, col;
     const int pos = parse_cell_reference(command, &row, &col);
     if (!pos) {
