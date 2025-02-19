@@ -318,7 +318,7 @@ zero_error_func:
 
 pair evaluate_cell(const Cell *cell)
 {
-    const Expression expression = *(get_expression(cell->row, cell->col));
+    const Expression expression = (get_expression(cell->row, cell->col));
     int eval = 0;
     if (expression.type == VALUE)
     {
