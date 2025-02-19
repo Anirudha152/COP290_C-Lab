@@ -710,7 +710,7 @@ int set_expression(const short row, const short col, const Expression* expressio
 
 int set_value_expression(const short row, const short col, const Value value)
 {
-    Expression* expression;
+    Expression* expression = get_expression(row, col);
     expression->type = VALUE;
     expression->value = value;
     return set_expression(row, col, expression);
@@ -718,7 +718,7 @@ int set_value_expression(const short row, const short col, const Value value)
 
 int set_arithmetic_expression(const short row, const short col, const Arithmetic arithmetic)
 {
-    Expression* expression;
+    Expression* expression = get_expression(row, col);
     expression->type = ARITHMETIC;
     expression->arithmetic = arithmetic;
     return set_expression(row, col, expression);
@@ -726,7 +726,7 @@ int set_arithmetic_expression(const short row, const short col, const Arithmetic
 
 int set_function_expression(const short row, const short col, const Function function)
 {
-    Expression* expression;
+    Expression* expression = get_expression(row, col);
     expression->type = FUNCTION;
     expression->function = function;
     return set_expression(row, col, expression);
