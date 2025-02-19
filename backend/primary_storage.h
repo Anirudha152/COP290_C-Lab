@@ -15,7 +15,8 @@ typedef struct
     union
     {
         int value;
-        struct Cell *cell;
+        short cell_row;
+        short cell_col;
     };
     enum ValueType type : 2;
 } __attribute__((packed)) Value;
