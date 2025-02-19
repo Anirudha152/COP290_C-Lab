@@ -18,7 +18,8 @@ short TOT_ROWS;
 short TOT_COLS;
 short LAZY_EVALUATION = 1;
 
-void print_usage(const char *program_name) {
+void print_usage(const char *program_name)
+{
     printf("Usage: %s R C [options]\n", program_name);
     printf("Options:\n");
     printf("  -v, --viewport <n>  Max number of rows/cols to display(for lazy eval)    (default 10)\n");
@@ -26,21 +27,28 @@ void print_usage(const char *program_name) {
     printf("  -h, --help          Show this help message\n");
 }
 
-void parse_arguments(int argc, char *argv[]) {
-    if (argc < 3) {
+void parse_arguments(int argc, char *argv[])
+{
+    if (argc < 3)
+    {
         print_usage(argv[0]);
         exit(1);
     }
-    TOT_ROWS = (short) strtol(argv[1], NULL, 10);
-    TOT_COLS = (short) strtol(argv[2], NULL, 10);
-    for (int i = 3; i < argc; i++) {
-        if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0) {
+    TOT_ROWS = (short)strtol(argv[1], NULL, 10);
+    TOT_COLS = (short)strtol(argv[2], NULL, 10);
+    for (int i = 3; i < argc; i++)
+    {
+        if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
+        {
             print_usage(argv[0]);
             exit(0);
         }
-        if ((strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--viewport") == 0) && i + 1 < argc) VIEWPORT_ROWS = atoi(argv[++i]) < TOT_ROWS ? atoi(argv[i]) : TOT_ROWS;
-        if ((strcmp(argv[i], "-l") == 0 || strcmp(argv[i], "--lazy") == 0) && i + 1 < argc) LAZY_EVALUATION = atoi(argv[++i]);
-        else {
+        if ((strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--viewport") == 0) && i + 1 < argc)
+            VIEWPORT_ROWS = atoi(argv[++i]) < TOT_ROWS ? atoi(argv[i]) : TOT_ROWS;
+        if ((strcmp(argv[i], "-l") == 0 || strcmp(argv[i], "--lazy") == 0) && i + 1 < argc)
+            LAZY_EVALUATION = atoi(argv[++i]);
+        else
+        {
             printf("Unknown argument: %s\n", argv[i]);
             print_usage(argv[0]);
             exit(1);
@@ -48,36 +56,47 @@ void parse_arguments(int argc, char *argv[]) {
     }
 }
 
-int main(const int argc, char *argv[]) {
+int main(const int argc, char *argv[])
+{
     parse_arguments(argc, argv);
     int t;
     scanf("%d", &t);
     initialize_storage();
-    while (t--) {
+    while (t--)
+    {
         int n, m;
         scanf("%d %d\n", &n, &m);
         char inps[n][CMD_BUFFER_SIZE];
         short vrow = 0;
         short vcol = 0;
-        for (int i = 0; i < n; i++) {
+        for (int i = 0; i < n; i++)
+        {
             char inp[CMD_BUFFER_SIZE];
             fgets(inp, CMD_BUFFER_SIZE, stdin);
             char *temp = inp;
-            while (*temp++ != '\n') {}
+            while (*temp++ != '\n')
+            {
+            }
             *--temp = '\0';
             strcpy(inps[i], inp);
-            if (strncmp(inps[i], "scroll_to", 9) == 0) {
+            if (strncmp(inps[i], "scroll_to", 9) == 0)
+            {
                 short row, col;
                 int pos = parse_cell_reference(inps[i] + 10, &row, &col);
-                if (!pos) continue;
+                if (!pos)
+                    continue;
                 vrow = row;
                 vcol = col;
                 struct timespec start, finish, delta;
                 clock_gettime(CLOCK_REALTIME, &start);
-                for (short i_ = vrow; i_ < vrow + VIEWPORT_ROWS; i_++) {
-                    if (i_ >= TOT_ROWS) break;
-                    for (short j_ = vcol; j_ < vcol + VIEWPORT_ROWS; j_++) {
-                        if (j_ >= TOT_COLS) break;
+                for (short i_ = vrow; i_ < vrow + VIEWPORT_ROWS; i_++)
+                {
+                    if (i_ >= TOT_ROWS)
+                        break;
+                    for (short j_ = vcol; j_ < vcol + VIEWPORT_ROWS; j_++)
+                    {
+                        if (j_ >= TOT_COLS)
+                            break;
                         get_cell_value(i_, j_);
                     }
                 }
@@ -91,24 +110,32 @@ int main(const int argc, char *argv[]) {
                 continue;
             }
             Command com = process_expression(inps[i], vrow, vcol);
-            if (com.status) {
+            if (com.status)
+            {
                 strcpy(com.error_msg, "ok");
             }
             printf("[%d] > %s --> (%s) [%.3fs]\n", i + 1, com.command, com.error_msg, com.time_taken);
         }
-        for (int i=0; i<m; i++) {
+        for (int i = 0; i < m; i++)
+        {
             char reference[CMD_BUFFER_SIZE];
             fgets(reference, CMD_BUFFER_SIZE, stdin);
             char *temp = reference;
-            while (*temp++ != '\n') {}
+            while (*temp++ != '\n')
+            {
+            }
             *--temp = '\0';
             short row, col;
             int pos = parse_cell_reference(reference, &row, &col);
-            if (!pos) continue;
-            Cell* cell = get_cell(row, col);
+            if (!pos)
+                continue;
+            Cell *cell = get_cell(row, col);
             char expression[CMD_BUFFER_SIZE];
-            strcpy(expression, get_expression_string(&cell->expression));
-            printf("%s : %s --> Value: %d, State: %s\n", reference, expression, cell->value, cell->state == CLEAN ? "Clean" : cell->state == DIRTY ? "Dirty" : cell->state == DFS_IN_PROGRESS ? "DFS In Progress" : cell->state == CIRCULAR_CHECKED ? "Circular Checked" : "Zero Error");
+            strcpy(expression, get_expression_string(get_expression(row, col)));
+            printf("%s : %s --> Value: %d, State: %s\n", reference, expression, cell->value, cell->state == CLEAN ? "Clean" : cell->state == DIRTY          ? "Dirty"
+                                                                                                                          : cell->state == DFS_IN_PROGRESS  ? "DFS In Progress"
+                                                                                                                          : cell->state == CIRCULAR_CHECKED ? "Circular Checked"
+                                                                                                                                                            : "Zero Error");
         }
     }
     destroy_storage();
