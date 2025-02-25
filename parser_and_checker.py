@@ -94,7 +94,7 @@ def main():
     workbook = xlsxwriter.Workbook(workbook_filename)
 
     # Read input
-    with open('tc1.txt', 'r') as f:
+    with open('tc49.txt', 'r') as f:
         lines = f.readlines()
 
     test_cases = int(lines[0])
