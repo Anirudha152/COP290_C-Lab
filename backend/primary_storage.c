@@ -116,7 +116,6 @@ void add_dependant(const int source_cell_index, const int cell_index)
             {
                 set_insert(dependants, cell->dependents_array->dependents_cells[i]);
             }
-            free(cell->dependents_array->dependents_cells);
             free(cell->dependents_array);
             cell->dependents_set = dependants;
         }
