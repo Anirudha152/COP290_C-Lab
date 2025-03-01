@@ -465,11 +465,11 @@ zero_error_func:
 
 pair evaluate_cell(const Cell *cell)
 {
-    const Expression expression = (get_expression(cell->row, cell->col));
+    const Expression* expression = (get_expression(cell->row, cell->col));
     int eval = 0;
-    if (expression.type == VALUE)
+    if (expression->type == VALUE)
     {
-        const Value value = expression.value;
+        const Value value = expression->value;
         if (value.type == INTEGER)
         {
             eval = value.value;
@@ -486,9 +486,9 @@ pair evaluate_cell(const Cell *cell)
             exit(1);
         }
     }
-    else if (expression.type == ARITHMETIC)
+    else if (expression->type == ARITHMETIC)
     {
-        const Arithmetic arithmetic = expression.arithmetic;
+        const Arithmetic arithmetic = expression->arithmetic;
         const Value value1 = arithmetic.value1;
         const Value value2 = arithmetic.value2;
         int val1 = 0;
@@ -546,9 +546,9 @@ pair evaluate_cell(const Cell *cell)
             eval = val1 / val2;
         }
     }
-    else if (expression.type == FUNCTION)
+    else if (expression->type == FUNCTION)
     {
-        return function_compute(expression.function);
+        return function_compute(expression->function);
     }
     return (pair){1, eval};
 zero_error:
@@ -641,7 +641,7 @@ void copy_dependencies(Cell **dependencies, const size_t dependencies_count, sho
     }
 }
 
-int handle_circular_connection(Cell *cell, short *rows_prev, short *cols_prev, const size_t dependencies_count, const Expression expression)
+int handle_circular_connection(Cell *cell, short *rows_prev, short *cols_prev, const size_t dependencies_count, const Expression* expression)
 {
     if (!circular_check(cell))
     {
@@ -690,7 +690,7 @@ int handle_circular_connection(Cell *cell, short *rows_prev, short *cols_prev, c
         return 0;
     }
 
-    set_expression_index(cell->row, cell->col, expression);
+    set_expression_index(cell->row, cell->col, *expression);
     if (LAZY_EVALUATION)
         mark_dirty(cell);
     else
@@ -700,7 +700,7 @@ int handle_circular_connection(Cell *cell, short *rows_prev, short *cols_prev, c
     return 1;
 }
 
-int set_expression(const short row, const short col, const Expression expression)
+int set_expression(const short row, const short col, const Expression* expression)
 {
     Cell *cell = get_cell(row, col);
     Cell *dependency_top_left = get_cell(cell->dependency_top_left_row, cell->dependency_top_left_col);
@@ -741,9 +741,9 @@ int set_expression(const short row, const short col, const Expression expression
     //     delete_dependant(dependencies[i]->row, dependencies[i]->col, row, col);
     // }
 
-    if (expression.type == VALUE)
+    if (expression->type == VALUE)
     {
-        if (expression.value.type == INTEGER)
+        if (expression->value.type == INTEGER)
         {
             if (cell->dependency_top_left_row != -1 && cell->dependency_top_left_col != -1)
             {
@@ -758,12 +758,12 @@ int set_expression(const short row, const short col, const Expression expression
 
             cell->dependency_count = 0;
         }
-        else if (expression.value.type == CELL_REFERENCE)
+        else if (expression->value.type == CELL_REFERENCE)
         {
-            const short rows[1] = {expression.value.cell->row};
-            const short cols[1] = {expression.value.cell->col};
+            const short rows[1] = {expression->value.cell->row};
+            const short cols[1] = {expression->value.cell->col};
             update_dependencies(rows, cols, 1, row, col);
-            add_dependant(expression.value.cell->row, expression.value.cell->col, row, col);
+            add_dependant(expression->value.cell->row, expression->value.cell->col, row, col);
         }
         else
         {
@@ -771,10 +771,10 @@ int set_expression(const short row, const short col, const Expression expression
             exit(1);
         }
     }
-    else if (expression.type == ARITHMETIC)
+    else if (expression->type == ARITHMETIC)
     {
-        const enum ValueType type1 = expression.arithmetic.value1.type;
-        const enum ValueType type2 = expression.arithmetic.value2.type;
+        const enum ValueType type1 = expression->arithmetic.value1.type;
+        const enum ValueType type2 = expression->arithmetic.value2.type;
         if (type1 == INTEGER && type2 == INTEGER)
         {
             cell->dependency_count = 0;
@@ -791,8 +791,8 @@ int set_expression(const short row, const short col, const Expression expression
         }
         else if ((type1 != CELL_REFERENCE) != (type2 != CELL_REFERENCE))
         {
-            const short row_ = type1 == CELL_REFERENCE ? expression.arithmetic.value1.cell->row : expression.arithmetic.value2.cell->row;
-            const short col_ = type1 == CELL_REFERENCE ? expression.arithmetic.value1.cell->col : expression.arithmetic.value2.cell->col;
+            const short row_ = type1 == CELL_REFERENCE ? expression->arithmetic.value1.cell->row : expression->arithmetic.value2.cell->row;
+            const short col_ = type1 == CELL_REFERENCE ? expression->arithmetic.value1.cell->col : expression->arithmetic.value2.cell->col;
             const short rows[1] = {row_};
             const short cols[1] = {col_};
             update_dependencies(rows, cols, 1, row, col);
@@ -800,25 +800,25 @@ int set_expression(const short row, const short col, const Expression expression
         }
         else
         {
-            const short rows[2] = {expression.arithmetic.value1.cell->row, expression.arithmetic.value2.cell->row};
-            const short cols[2] = {expression.arithmetic.value1.cell->col, expression.arithmetic.value2.cell->col};
+            const short rows[2] = {expression->arithmetic.value1.cell->row, expression->arithmetic.value2.cell->row};
+            const short cols[2] = {expression->arithmetic.value1.cell->col, expression->arithmetic.value2.cell->col};
             update_dependencies(rows, cols, 2, row, col);
-            add_dependant(expression.arithmetic.value1.cell->row, expression.arithmetic.value1.cell->col, row, col);
-            add_dependant(expression.arithmetic.value2.cell->row, expression.arithmetic.value2.cell->col, row, col);
+            add_dependant(expression->arithmetic.value1.cell->row, expression->arithmetic.value1.cell->col, row, col);
+            add_dependant(expression->arithmetic.value2.cell->row, expression->arithmetic.value2.cell->col, row, col);
         }
     }
-    else if (expression.type == FUNCTION && expression.function.type != SLEEP)
+    else if (expression->type == FUNCTION && expression->function.type != SLEEP)
     {
-        const int size = (expression.function.range.end_row - expression.function.range.start_row + 1) * (expression.function.range.end_col - expression.function.range.start_col + 1);
+        const int size = (expression->function.range.end_row - expression->function.range.start_row + 1) * (expression->function.range.end_col - expression->function.range.start_col + 1);
         short *rows = malloc(2 * sizeof(short));
         short *cols = malloc(2 * sizeof(short));
-        rows[0] = expression.function.range.start_row;
-        rows[1] = expression.function.range.end_row;
-        cols[0] = expression.function.range.start_col;
-        cols[1] = expression.function.range.end_col;
-        for (short i = expression.function.range.start_row; i <= expression.function.range.end_row; i++)
+        rows[0] = expression->function.range.start_row;
+        rows[1] = expression->function.range.end_row;
+        cols[0] = expression->function.range.start_col;
+        cols[1] = expression->function.range.end_col;
+        for (short i = expression->function.range.start_row; i <= expression->function.range.end_row; i++)
         {
-            for (short j = expression.function.range.start_col; j <= expression.function.range.end_col; j++)
+            for (short j = expression->function.range.start_col; j <= expression->function.range.end_col; j++)
             {
                 add_dependant(i, j, row, col);
             }
@@ -827,9 +827,9 @@ int set_expression(const short row, const short col, const Expression expression
         free(cols);
         free(rows);
     }
-    else if (expression.type == FUNCTION && expression.function.type == SLEEP)
+    else if (expression->type == FUNCTION && expression->function.type == SLEEP)
     {
-        if (expression.function.value.type == INTEGER)
+        if (expression->function.value.type == INTEGER)
         {
             cell->dependency_count = 0;
             if (cell->dependency_top_left_row != -1 && cell->dependency_top_left_col != -1)
@@ -843,11 +843,11 @@ int set_expression(const short row, const short col, const Expression expression
                 cell->dependency_bottom_right_col = -1;
             }
         }
-        else if (expression.function.value.type == CELL_REFERENCE)
+        else if (expression->function.value.type == CELL_REFERENCE)
         {
-            add_dependant(expression.function.value.cell->row, expression.function.value.cell->col, row, col);
-            const short rows[1] = {expression.function.value.cell->row};
-            const short cols[1] = {expression.function.value.cell->col};
+            add_dependant(expression->function.value.cell->row, expression->function.value.cell->col, row, col);
+            const short rows[1] = {expression->function.value.cell->row};
+            const short cols[1] = {expression->function.value.cell->col};
             update_dependencies(rows, cols, 1, row, col);
         }
     }
@@ -856,25 +856,25 @@ int set_expression(const short row, const short col, const Expression expression
 
 int set_value_expression(const short row, const short col, const Value value)
 {
-    Expression expression;
-    expression.type = VALUE;
-    expression.value = value;
+    Expression* expression = get_expression(row, col);
+    expression->type = VALUE;
+    expression->value = value;
     return set_expression(row, col, expression);
 }
 
 int set_arithmetic_expression(const short row, const short col, const Arithmetic arithmetic)
 {
-    Expression expression;
-    expression.type = ARITHMETIC;
-    expression.arithmetic = arithmetic;
+    Expression* expression = get_expression(row, col);
+    expression->type = ARITHMETIC;
+    expression->arithmetic = arithmetic;
     return set_expression(row, col, expression);
 }
 
 int set_function_expression(const short row, const short col, const Function function)
 {
-    Expression expression;
-    expression.type = FUNCTION;
-    expression.function = function;
+    Expression* expression = get_expression(row, col);
+    expression->type = FUNCTION;
+    expression->function = function;
     return set_expression(row, col, expression);
 }
 

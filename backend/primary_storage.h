@@ -179,7 +179,7 @@ Cell *get_cell(short row, short col);
 
 void add_dependant(short source_row, short source_col, short row, short col);
 
-Expression get_expression(short row, short col);
+Expression* get_expression(short row, short col);
 
 void set_expression_index(short row, short col, Expression expression);
 

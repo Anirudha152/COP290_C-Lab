@@ -268,14 +268,14 @@ Cell *get_cell(const short row, const short col)
     return &table[(int)row * (int)TOT_COLS + (int)col];
 }
 
-Expression get_expression(const short row, const short col)
+Expression* get_expression(const short row, const short col)
 {
     const Cell *cell = get_cell(row, col);
     if (cell->expression_index == -1)
     {
-        return *empty_expression;
+        return empty_expression;
     }
-    return expression_table->expressions[cell->expression_index];
+    return &expression_table->expressions[cell->expression_index];
 }
 
 void set_expression_index(short row, short col, Expression expression)

@@ -131,7 +131,7 @@ int main(const int argc, char *argv[])
                 continue;
             Cell *cell = get_cell(row, col);
             char expression[CMD_BUFFER_SIZE];
-            Expression exp = get_expression(row, col);
+            Expression* exp = get_expression(row, col);
             strcpy(expression, get_expression_string(exp));
             printf("%s : %s --> Value: %d, State: %s\n", reference, expression, cell->value, cell->state == CLEAN ? "Clean" : cell->state == DIRTY          ? "Dirty"
                                                                                                                           : cell->state == DFS_IN_PROGRESS  ? "DFS In Progress"
