@@ -6,30 +6,30 @@
 #include "../constants.h"
 #include "../backend/primary_storage.h"
 
-bool cellWithinExpression(const Expression* expression, const short row, const short col) {
-    if (expression->type == VALUE) {
-        if (expression->value.type == CELL_REFERENCE && expression->value.cell->row == row && expression->value.cell->col == col)
-            return true;
-        return false;
-    }
-    if (expression->type == ARITHMETIC) {
-        if (expression->arithmetic.value1.type == CELL_REFERENCE && expression->arithmetic.value1.cell->row == row && expression->arithmetic.value1.cell->col == col) {
-            return true;
-        }
-        if (expression->arithmetic.value2.type == CELL_REFERENCE && expression->arithmetic.value2.cell->row == row && expression->arithmetic.value2.cell->col == col) {
-            return true;
-        }
-        return false;
-    }
-    if (expression->type == FUNCTION) {
-        if (expression->function.type != SLEEP) {
-            return expression->function.range.start_row <= row && expression->function.range.end_row >= row &&
-               expression->function.range.start_col <= col && expression->function.range.end_col >= col;
-        }
-        return expression->function.value.type == CELL_REFERENCE && expression->function.value.cell->row == row && expression->function.value.cell->col == col;
-    }
-    return false;
-}
+// bool cellWithinExpression(const Expression* expression, const short row, const short col) {
+//     if (expression->type == VALUE) {
+//         if (expression->value.type == CELL_REFERENCE && expression->value.cell->row == row && expression->value.cell->col == col)
+//             return true;
+//         return false;
+//     }
+//     if (expression->type == ARITHMETIC) {
+//         if (expression->arithmetic.value1.type == CELL_REFERENCE && expression->arithmetic.value1.cell->row == row && expression->arithmetic.value1.cell->col == col) {
+//             return true;
+//         }
+//         if (expression->arithmetic.value2.type == CELL_REFERENCE && expression->arithmetic.value2.cell->row == row && expression->arithmetic.value2.cell->col == col) {
+//             return true;
+//         }
+//         return false;
+//     }
+//     if (expression->type == FUNCTION) {
+//         if (expression->function.type != SLEEP) {
+//             return expression->function.range.start_row <= row && expression->function.range.end_row >= row &&
+//                expression->function.range.start_col <= col && expression->function.range.end_col >= col;
+//         }
+//         return expression->function.value.type == CELL_REFERENCE && expression->function.value.cell->row == row && expression->function.value.cell->col == col;
+//     }
+//     return false;
+// }
 
 short col_label_to_index(const char *col) {
     short result = 0;
@@ -41,7 +41,7 @@ short col_label_to_index(const char *col) {
     return result;
 }
 
-void col_index_to_label(const short col, char *buffer) {
+void col_index_to_label(short col, char *buffer) {
     int len = 0;
     if (col >= 26) {
         const int first = col / 26 - 1;
@@ -87,7 +87,7 @@ int parse_cell_reference(const char *ref, short *row, short *col) {
         *row = -1;
         return 0;
     }
-    if (isdigit(ref[i       ])) {
+    if (isdigit(ref[i])) {
         *col = -1;
         *row = -1;
         return 0;

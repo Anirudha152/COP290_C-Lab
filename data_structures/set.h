@@ -5,14 +5,14 @@
 
 Set* set_create(void);
 void set_destroy(Set *set);
-int set_insert(Set *set, Cell *cell);
-int set_remove(Set *set, short row, short col);
-Cell* set_find(Set *set, short row, short col);
+int set_insert(Set *set, int cell_index);
+int set_remove(Set *set, int cell_index);
+int set_find(Set *set, int cell_index);
 void set_clear(Set *set);
 size_t set_size(const Set *set);
 
 SetIterator* set_iterator_create(Set *set);
-Cell* set_iterator_next(SetIterator *iterator);
+int set_iterator_next(SetIterator *iterator);
 void set_iterator_destroy(SetIterator *iterator);
 
 #endif

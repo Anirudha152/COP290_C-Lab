@@ -5,291 +5,117 @@
 #include "../data_structures/set.h"
 
 Cell *table;
-short CAPACITY = 4;
-typedef struct Expression_table
-{
-    Expression *expressions;
-    int size;
-    int capacity;
-} Expression_table;
 
-Expression_table *expression_table;
-Expression *empty_expression;
+void initialize_storage() {
+    const int size = (int) TOT_ROWS * (int) TOT_COLS;
+    table = (Cell *) malloc(sizeof(Cell) * size);
 
-void initialize_expression_table()
-{
-    expression_table = (Expression_table *)malloc(sizeof(Expression_table));
-    if (expression_table == NULL)
-    {
+    if (table == NULL) {
         printf("Memory allocation failed\n");
         exit(1);
     }
-    expression_table->size = 0;
-    expression_table->capacity = 8;
-    expression_table->expressions = (Expression *)malloc(sizeof(Expression) * expression_table->capacity);
-    if (expression_table->expressions == NULL)
-    {
-        printf("Memory allocation failed\n");
-        exit(1);
+    for (int i = 0; i < TOT_ROWS * TOT_COLS; i++) {
+        initialize_cell(&table[i], i);
     }
-}
-
-void initialize_storage()
-{
-    const int size = (int)TOT_ROWS * (int)TOT_COLS;
-    table = (Cell *)malloc(sizeof(Cell) * size);
-
-    if (table == NULL)
-    {
-        printf("Memory allocation failed\n");
-        exit(1);
-    }
-
-    for (short i = 0; i < TOT_ROWS; i++)
-    {
-        for (short j = 0; j < TOT_COLS; j++)
-        {
-            initialize_cell(&table[i * TOT_COLS + j], i, j);
-        }
-    }
-    empty_expression = (Expression *)malloc(sizeof(Expression));
-    if (empty_expression == NULL)
-    {
-        printf("Memory allocation failed\n");
-        exit(1);
-    }
-    initialize_expression(empty_expression);
-    initialize_expression_table();
     initialize_stack();
     initialize_stack_mem();
 }
 
-void destroy_expression_table()
-{
-    free(expression_table->expressions);
-    free(expression_table);
-}
-
-int expression_index()
-{
-    if (expression_table->size == expression_table->capacity)
-    {
-        expression_table->capacity *= 2;
-        expression_table->expressions = (Expression *)realloc(expression_table->expressions, sizeof(Expression) * expression_table->capacity);
-        if (expression_table->expressions == NULL)
-        {
-            printf("Memory allocation failed\n");
-            exit(1);
-        }
-    }
-    return expression_table->size++;
-}
-void destroy_storage()
-{
-    for (short i = 0; i < TOT_ROWS; i++)
-    {
-        for (short j = 0; j < TOT_COLS; j++)
-        {
-            const Cell *cell = &table[i * TOT_COLS + j];
-            if (cell->dependants_type == ArrayForm)
-            {
-                free(cell->dependants_array->rows);
-                free(cell->dependants_array->cols);
-                free(cell->dependants_array);
-            }
-            else
-            {
-                set_destroy(cell->dependants_set);
-            }
-        }
+void destroy_storage() {
+    for (int i = 0; i < TOT_ROWS * TOT_COLS; i++) {
+        const Cell *cell = &table[i];
+        set_destroy(cell->dependants);
     }
     free(table);
-    free(empty_expression);
-    destroy_expression_table();
     destroy_stack();
     destroy_stack_mem();
 }
 
-void initialize_expression(Expression *expression)
-{
-    expression->type = VALUE;
-    Value value;
-    value.type = INTEGER;
-    value.value = 0;
-    expression->value = value;
-}
-DependantsArray *initialize_deparray()
-{
-    DependantsArray *dep_array = (DependantsArray *)malloc(sizeof(DependantsArray));
-    dep_array->rows = (short *)malloc(CAPACITY * sizeof(short));
-    dep_array->cols = (short *)malloc(CAPACITY * sizeof(short));
-    for (int i = 0; i < CAPACITY; i++)
-    {
-        dep_array->rows[i] = -1;
-        dep_array->cols[i] = -1;
-    }
-    dep_array->size = 0;
-    return dep_array;
-}
-
-void initialize_cell(Cell *cell, const short row, const short col)
-{
-    cell->row = row;
-    cell->col = col;
+void initialize_cell(Cell *cell, const int) {
     cell->value = 0;
-    cell->expression_index = -1;
-    cell->state = CLEAN;
-    cell->dependency_top_left_row = -1;
-    cell->dependency_top_left_col = -1;
-    cell->dependency_bottom_right_row = -1;
-    cell->dependency_bottom_right_col = -1;
-    cell->dependency_count = 0;
-    cell->dependants_array = initialize_deparray();
+    cell->expression_type = 0;
+    cell->val1_type = 0;
+    cell->val2_type = 0;
+    cell->op = 0;
+    cell->cell_state = 0;
+    cell->val1 = 0;
+    cell->val2 = 0;
+    cell->dependants = set_create();
 }
 
-
-
-int get_raw_value(const short row, const short col)
-{
-    if (row < 0 || row >= TOT_ROWS || col < 0 || col >= TOT_COLS)
-    {
+int get_raw_value(const int cell_index) {
+    if (cell_index < 0 || cell_index >= TOT_ROWS * TOT_COLS) {
         printf("Invalid cell reference\n");
         return 0;
     }
-    const Cell *cell = &table[(int)row * (int)TOT_COLS + (int)col];
+    const Cell *cell = &table[cell_index];
     return cell->value;
 }
 
-void update_dependencies(const short *rows, const short *cols, const int size, const short source_row, const short source_col)
-{
-    Cell *cell = &table[(int)source_row * TOT_COLS + source_col];
-    cell->dependency_top_left_row = -1;
-    cell->dependency_top_left_col = -1;
-    cell->dependency_bottom_right_row = -1;
-    cell->dependency_bottom_right_col = -1;
-    cell->dependency_count = size;
-    if (size == 0)
-    {
+void add_dependant(const int source_cell_index, const int cell_index) {
+    if (cell_index < 0 || cell_index >= TOT_ROWS * TOT_COLS || source_cell_index < 0 || source_cell_index >= TOT_ROWS * TOT_COLS) {
         return;
     }
-    cell->dependency_top_left_row = rows[0];
-    cell->dependency_top_left_col = cols[0];
-    if (size > 1)
-    {
-        cell->dependency_bottom_right_row = rows[1];
-        cell->dependency_bottom_right_col = cols[1];
-    }
-
-    cell->dependency_count = size;
-    // Cell **dependency = malloc(sizeof(Cell *) * size);
-    // if (dependency == NULL) {
-    //     printf("Memory allocation failed\n");
-    //     exit(1);
-    // }
-    // for (int i = 0; i < size; i++) {
-    //     if (rows[i] < 0 || rows[i] >= TOT_ROWS || cols[i] < 0 || cols[i] >= TOT_COLS) {
-    //         printf("Invalid cell reference\n");
-    //         exit(1);
-    //     }
-    //     dependency[i] = &table[(int) rows[i] * (int) TOT_COLS + (int) cols[i]];
-    // }
-    // cell->dependencies = dependency;
-    // cell->dependency_count = size;
+    const Cell *cell = &table[source_cell_index];
+    set_insert(cell->dependants, cell_index);
 }
 
-void add_dependant(const short source_row, const short source_col, const short row, const short col)
-{
-    if (row < 0 || row >= TOT_ROWS || col < 0 || col >= TOT_COLS)
-    {
-        return;
+void delete_dependant(const int source_cell_index, const int cell_index) {
+    const Cell *source = &table[source_cell_index];
+    set_remove(source->dependants, cell_index);
+}
+
+Cell *get_cell(const int cell_index) {
+    return &table[cell_index];
+}
+
+Expression get_expression(const int cell_index) {
+    if (cell_index < 0 || cell_index >= TOT_ROWS * TOT_COLS) {
+        printf("Invalid cell reference\n");
     }
-    Cell *cell = &table[(int)source_row * (int)TOT_COLS + (int)source_col];
-    Cell *dependant = &table[(int)row * (int)TOT_COLS + (int)col];
-    if (cell->dependants_type == ArrayForm)
-    {
-        if (cell->dependants_array->size == CAPACITY)
-        {
-            cell->dependants_type = SetForm;
-            Set *dep_set = set_create();
-            for (int i = 0; i < CAPACITY; i++)
-            {
-                Cell *dep = &table[(int)cell->dependants_array->rows[i] * (int)TOT_COLS + (int)cell->dependants_array->cols[i]];
-                set_insert(dep_set, dep);
+    Cell* cell = get_cell(cell_index);
+    Expression exp;
+    exp.type = cell->expression_type;
+    if (cell->expression_type == 0) {
+        Value val;
+        if (cell->val1_type == 0) val.type = INTEGER;
+        else val.type = CELL_REFERENCE;
+        val.value = cell->val1;
+        exp.value = val;
+    } else if (cell->expression_type == 1) {
+        Arithmetic arith;
+        arith.type = cell->op;
+        Value val1, val2;
+        if (cell->val1_type == 0) val1.type = INTEGER;
+        else val1.type = CELL_REFERENCE;
+        val1.value = cell->val1;
+        if (cell->val2_type == 0) val2.type = INTEGER;
+        else val2.type = CELL_REFERENCE;
+        val2.value = cell->val2;
+        arith.value1 = val1;
+        arith.value2 = val2;
+        exp.arithmetic = arith;
+    } else {
+        Function func;
+        func.type = cell->val2_type * 4 + cell->op;
+        if (func.type == 5) {
+            Value val;
+            if (cell->val1_type == 0) {
+                val.type = INTEGER;
+            } else {
+                val.type = CELL_REFERENCE;
             }
-            set_insert(dep_set, dependant);
-            cell->dependants_set = dep_set;
-            free(cell->dependants_array->rows);
-            free(cell->dependants_array->cols);
-            free(cell->dependants_array);
+            val.value = cell->val1;
+            func.value = val;
+        } else {
+            int val1 = cell->val1;
+            int val2 = cell->val2;
+            Range range;
+            range.start_index = val1;
+            range.end_index = val2;
+            func.range = range;
         }
-        else
-        {
-            cell->dependants_array->rows[cell->dependants_array->size] = row;
-            cell->dependants_array->cols[cell->dependants_array->size] = col;
-            cell->dependants_array->size++;
-        }
+        exp.function = func;
     }
-    else
-    {
-        set_insert(cell->dependants_set, dependant);
-    }
-}
-
-void delete_dependant(const short source_row, const short source_col, const short row, const short col)
-{
-    Cell *source = &table[(int)source_row * (int)TOT_COLS + (int)source_col];
-    if (source->dependants_type == ArrayForm)
-    {
-        int ind = -1;
-        for (int i = 0; i < CAPACITY; i++)
-        {
-            if ((row == source->dependants_array->rows[i]) && (col == source->dependants_array->cols[i]))
-            {
-                ind = i;
-                break;
-            }
-        }
-        for (int i = ind; i < CAPACITY - 1; i++)
-        {
-            source->dependants_array->rows[i] = source->dependants_array->rows[i + 1];
-            source->dependants_array->cols[i] = source->dependants_array->cols[i + 1];
-        }
-        source->dependants_array->size--;
-        source->dependants_array->rows[source->dependants_array->size] = -1;
-        source->dependants_array->rows[source->dependants_array->size] = -1;
-    }
-    else
-    {
-        set_remove(source->dependants_set, row, col);
-    }
-}
-
-Cell *get_cell(const short row, const short col)
-{
-    return &table[(int)row * (int)TOT_COLS + (int)col];
-}
-
-Expression* get_expression(const short row, const short col)
-{
-    const Cell *cell = get_cell(row, col);
-    if (cell->expression_index == -1)
-    {
-        return empty_expression;
-    }
-    return &expression_table->expressions[cell->expression_index];
-}
-
-void set_expression_index(short row, short col, Expression expression)
-{
-    Cell *cell = get_cell(row, col);
-    if (cell->expression_index != -1)
-    {
-        expression_table->expressions[cell->expression_index] = expression;
-    }
-    else
-    {
-        const int index = expression_index();
-        cell->expression_index = index;
-        expression_table->expressions[index] = expression;
-    }
+    return exp;
 }

@@ -91,7 +91,7 @@ void draw_grid() {
                 continue;
             }
             int color_pair_ = 0;
-            int reverse_ = 1;
+            const int reverse_ = 1;
             if (get_cell(state->curr_row, state->curr_col)->state != ZERO_ERROR && get_cell(state->curr_row, state->curr_col)->state != CLEAN) {
                 color_pair_ = 1;
             } else if (get_cell(state->curr_row, state->curr_col)->state == ZERO_ERROR) {

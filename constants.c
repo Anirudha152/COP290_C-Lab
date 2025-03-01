@@ -3,14 +3,14 @@
 #include <ctype.h>
 #include <time.h>
 
-short max(const short a, const short b) {
+int max(const int a, const int b) {
     if (a > b) {
         return a;
     }
     return b;
 }
 
-short min(const short a, const short b) {
+int min(const int a, const int b) {
     if (a < b) {
        return a;
     }
@@ -53,4 +53,16 @@ double sub_timespec(struct timespec t1, struct timespec t2, struct timespec *td)
         td->tv_sec++;
     }
     return (double) td->tv_sec + (double) td->tv_nsec / 1000000000;
+}
+
+int rowcol_to_cell_index(const short row, const short col) {
+    return row * TOT_COLS + col;
+}
+
+short cell_index_to_row(const int cell_index) {
+    return cell_index / TOT_COLS;
+}
+
+short cell_index_to_col(const int cell_index) {
+    return cell_index % TOT_COLS;
 }

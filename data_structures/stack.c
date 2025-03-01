@@ -5,7 +5,7 @@
 #define DEFAULT_SIZE 4
 
 void initialize_stack() {
-    cell_stack.elements = malloc(sizeof(Cell*) * DEFAULT_SIZE);
+    cell_stack.elements = malloc(sizeof(int) * DEFAULT_SIZE);
     if (cell_stack.elements == NULL) {
         printf("Memory allocation failed\n");
         exit(1);
@@ -20,7 +20,7 @@ void destroy_stack() {
 
 void shrink_capacity() {
     cell_stack.dynamic_size /= 2;
-    Cell **temp_stack = malloc(sizeof(Cell*) * cell_stack.dynamic_size);
+    int* temp_stack = malloc(sizeof(int) * cell_stack.dynamic_size);
     if (temp_stack == NULL) {
         printf("Stack Memory allocation failed\n");
         exit(1);
@@ -34,14 +34,14 @@ void shrink_capacity() {
 
 void double_capacity() {
     cell_stack.dynamic_size *= 2;
-    cell_stack.elements = realloc(cell_stack.elements, sizeof(Cell*) * cell_stack.dynamic_size);
+    cell_stack.elements = realloc(cell_stack.elements, sizeof(int) * cell_stack.dynamic_size);
     if (cell_stack.elements == NULL) {
         printf("Stack Memory allocation failed\n");
         exit(1);
     }
 }
 
-Cell *stack_pop() {
+int stack_pop() {
     if (cell_stack.no_of_elements < cell_stack.dynamic_size / 2 && cell_stack.no_of_elements > DEFAULT_SIZE) {
         shrink_capacity();
     }
@@ -49,7 +49,7 @@ Cell *stack_pop() {
     return cell_stack.elements[cell_stack.no_of_elements];
 }
 
-void stack_push(Cell *element) {
+void stack_push(const int element) {
     if (cell_stack.elements == NULL) {
         printf("Stack Memory allocation failed\n");
         exit(1);
@@ -61,7 +61,7 @@ void stack_push(Cell *element) {
     cell_stack.no_of_elements += 1;
 }
 
-Cell* stack_top() {
+int stack_top() {
     return cell_stack.elements[cell_stack.no_of_elements - 1];
 }
 

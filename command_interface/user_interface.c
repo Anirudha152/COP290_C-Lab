@@ -78,9 +78,9 @@ void draw_grid() {
 			printf("\n%-*d", DEFAULT_CELL_WIDTH, actual_row + 1);
 			for (short j = 0; j < state->visible_cols; j++) {
 				const short actual_col = j + state->start_col;
-				const int value = get_cell_value(actual_row, actual_col);
-				const Cell* cell = get_cell(actual_row, actual_col);
-				if (cell->state == ZERO_ERROR) {
+				const int value = get_cell_value(rowcol_to_cell_index(actual_row, actual_col));
+				const Cell* cell = get_cell(rowcol_to_cell_index(actual_row, actual_col));
+				if (cell->cell_state == 3) {
 					printf("%-*s", DEFAULT_CELL_WIDTH, "ERR");
 				} else {
 					printf("%-*d", DEFAULT_CELL_WIDTH, value);
@@ -106,7 +106,7 @@ int run() {
 		handle_movement_command(command[0]);
 		for (short i = 0; i < state->visible_rows; i++) {
 			for (short j = 0; j < state->visible_cols; j++) {
-				get_cell_value(i + state->start_row, j + state->start_col);
+				get_cell_value(rowcol_to_cell_index(i + state->start_row, j + state->start_col));
 			}
 		}
 		last_command.status = 1;

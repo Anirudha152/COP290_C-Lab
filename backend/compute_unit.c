@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <math.h>
 #include "primary_storage.h"
 #include "compute_unit.h"
@@ -8,450 +7,227 @@
 #include "../data_structures/stack.h"
 #include "../data_structures/set.h"
 
-int circular_check(Cell *start_cell)
-{
+int circular_check(const int start_cell_index) {
     clear_stack();
     clear_stack_mem();
-    stack_push(start_cell);
-    while (!is_stack_empty())
-    {
-        Cell *current = stack_top();
-        Memory mem = {current->row, current->col, current->state};
-        if (current->state == CLEAN || current->state == DIRTY || current->state == ZERO_ERROR)
+    stack_push(start_cell_index);
+    while (!is_stack_empty()) {
+        const int current_index = stack_top();
+        Cell* current = get_cell(current_index);
+        const Memory mem = {current_index, current->cell_state};
+        if (current->cell_state == 0 || current->cell_state == 3)
             stack_push_mem(mem);
-        current->state = DFS_IN_PROGRESS;
-        // if (set_size(current->dependants_set) == 0)
-        // {
-        //     stack_pop();
-        //     current->state = CIRCULAR_CHECKED;
-        //     continue;
-        // }
-        if (current->dependants_type == ArrayForm)
-        {
-            if (current->dependants_array->size == 0)
-            {
-                stack_pop();
-                current->state = CIRCULAR_CHECKED;
-                continue;
+        current->cell_state = 1;
+        if (set_size(current->dependants) == 0) {
+            stack_pop();
+            current->cell_state = 2;
+            continue;
+        }
+        SetIterator *iter = set_iterator_create(current->dependants);
+        int done = 1;
+        int cell_index;
+        while ((cell_index = set_iterator_next(iter)) != -1) {
+            const Cell* cell = get_cell(cell_index);
+            if (cell->cell_state == 0 || cell->cell_state == 3) {
+                stack_push(cell_index);
+                done = 0;
+            } else if (cell->cell_state == 1) {
+                clear_stack();
+                set_iterator_destroy(iter);
+                return 0;
             }
         }
-        else
-        {
-            if (set_size(current->dependants_set) == 0)
-            {
-                stack_pop;
-                current->state = CIRCULAR_CHECKED;
-                continue;
-            }
+        if (done) {
+            stack_pop();
+            current->cell_state = 2;
         }
-        if (current->dependants_type == ArrayForm)
-        {
-            int done = 1;
-            Cell *cell;
-            for (int i = 0; i < current->dependants_array->size; i++)
-            {
-                cell = get_cell(current->dependants_array->rows[i], current->dependants_array->cols[i]);
-                if (cell->state == CLEAN || cell->state == DIRTY || cell->state == ZERO_ERROR)
-                {
-                    stack_push(cell);
-                    done = 0;
-                }
-                else if (cell->state == DFS_IN_PROGRESS)
-                {
-                    clear_stack();
-                    return 0;
-                }
-            }
-            if (done)
-            {
-                stack_pop();
-                current->state = CIRCULAR_CHECKED;
-            }
-        }
-        else
-        {
-            SetIterator *iter = set_iterator_create(current->dependants_set);
-            int done = 1;
-            Cell *cell;
-            while ((cell = set_iterator_next(iter)) != NULL)
-            {
-                if (cell->state == CLEAN || cell->state == DIRTY || cell->state == ZERO_ERROR)
-                {
-                    stack_push(cell);
-                    done = 0;
-                }
-                else if (cell->state == DFS_IN_PROGRESS)
-                {
-                    clear_stack();
-                    set_iterator_destroy(iter);
-                    return 0;
-                }
-            }
-            if (done)
-            {
-                stack_pop();
-                current->state = CIRCULAR_CHECKED;
-            }
-            set_iterator_destroy(iter);
-        }
+        set_iterator_destroy(iter);
     }
     return 1;
 }
 
-void clear_debris()
-{
-    while (stack_size_mem())
-    {
-        Memory mem = stack_top_mem();
-        Cell *cell = get_cell(mem.row, mem.col);
-        cell->state = mem.state;
+void clear_debris() {
+    while (stack_size_mem()) {
+        const Memory mem = stack_top_mem();
+        Cell *cell = get_cell(mem.cell_index);
+        cell->cell_state = mem.state;
         stack_pop_mem();
     }
 }
 
 pair evaluate_cell(const Cell *cell);
 
-void mark_dirty(Cell *start_cell)
-{
-    clear_stack();
-    stack_push(start_cell);
-    while (!is_stack_empty())
-    {
-        Cell *current = stack_top();
-        current->state = DFS_IN_PROGRESS;
-        // if (set_size(current->dependants) == 0)
-        // {
-        //     stack_pop();
-        //     current->state = DIRTY;
-        //     continue;
-        // }
-        if (current->dependants_type == ArrayForm)
-        {
-            if (current->dependants_array->size == 0)
-            {
-                stack_pop();
-                current->state = DIRTY;
-                continue;
-            }
-        }
-        else
-        {
-            if (set_size(current->dependants_set) == 0)
-            {
-                stack_pop;
-                current->state = DIRTY;
-                continue;
-            }
-        }
-        if (current->dependants_type == ArrayForm)
-        {
-            int done = 1;
-            Cell *cell;
-            for (int i = 0; i < cell->dependants_array->size; i++)
-            {
-                cell = get_cell(current->dependants_array->rows[i], current->dependants_array->cols[i]);
-                if (cell->state == CIRCULAR_CHECKED)
-                {
-                    stack_push(cell);
-                    done = 0;
-                }
-            }
-            if (done)
-            {
-                stack_pop();
-                current->state = DIRTY;
-            }
-        }
-        else
-        {
-            SetIterator *iter = set_iterator_create(current->dependants_set);
-            int done = 1;
-            Cell *cell;
-            while ((cell = set_iterator_next(iter)) != NULL)
-            {
-                if (cell->state == CIRCULAR_CHECKED)
-                {
-                    stack_push(cell);
-                    done = 0;
-                }
-            }
-            if (done)
-            {
-                stack_pop();
-                current->state = DIRTY;
-            }
-            set_iterator_destroy(iter);
+int get_dependency_count(const Cell *cell) {
+    int count = 0;
+    if (cell->expression_type == 0) {
+        count = cell->val1_type;
+    } else if (cell->expression_type == 1) {
+        count = cell->val1_type + cell->val2_type;
+    } else if (cell->expression_type == 2) {
+        if (cell->val2_type == 1 && cell->op == 1) {
+            count = cell->val1_type;
+        } else {
+            count = (cell_index_to_row(cell->val2) - cell_index_to_row(cell->val1) + 1) * (cell_index_to_col(cell->val2) - cell_index_to_col(cell->val1) + 1);
         }
     }
+    return count;
 }
 
-void clean_cells_forward(Cell *start_cell)
-{
+void clean_cells(const int start_cell) {
     clear_stack();
     stack_push(start_cell);
-    while (!is_stack_empty())
-    {
-        Cell *current = stack_top();
+    while (!is_stack_empty()) {
+        const int current_index = stack_top();
+        Cell *current = get_cell(current_index);
         stack_pop();
-        pair eval = evaluate_cell(current);
-        current->state = eval.first ? CLEAN : ZERO_ERROR;
+        const pair eval = evaluate_cell(current);
+        current->cell_state = eval.first ? 0 : 3;
         current->value = eval.second;
-        if (current->dependants_type == ArrayForm)
-        {
-            Cell *cell;
-            for (int i = 0; i < current->dependants_array->size; i++)
-            {
-                cell = get_cell(current->dependants_array->rows[i], current->dependants_array->cols[i]);
-                if (cell->state == CIRCULAR_CHECKED)
-                {
-                    int flag = 1;
-                    if (cell->dependency_count == 1)
-                    {
-                        if (get_cell(cell->dependency_top_left_row, cell->dependency_top_left_col)->state != CLEAN && get_cell(cell->dependency_top_left_row, cell->dependency_top_left_col)->state != ZERO_ERROR)
-                        {
-                            flag = 0;
-                        }
+        SetIterator *iter = set_iterator_create(current->dependants);
+        int cell_index;
+        while ((cell_index = set_iterator_next(iter)) != -1) {
+            const Cell *cell = get_cell(cell_index);
+            const int dependency_count = get_dependency_count(cell);
+            if (cell->cell_state == 2) {
+                int flag = 1;
+                if (dependency_count == 1) {
+                    if (get_cell(cell->val1)->cell_state != 0 && get_cell(cell->val1)->cell_state != 3) {
+                        flag = 0;
                     }
-                    if (cell->dependency_count == 2)
-                    {
-                        if (get_cell(cell->dependency_top_left_row, cell->dependency_top_left_col)->state != CLEAN && get_cell(cell->dependency_top_left_row, cell->dependency_top_left_col)->state != ZERO_ERROR)
-                        {
-                            flag = 0;
-                        }
-                        else if (get_cell(cell->dependency_bottom_right_row, cell->dependency_bottom_right_col)->state != CLEAN && get_cell(cell->dependency_bottom_right_row, cell->dependency_bottom_right_col)->state != ZERO_ERROR)
-                        {
-                            flag = 0;
-                        }
+                }
+                if (dependency_count == 2) {
+                    if (get_cell(cell->val1)->cell_state != 0 && get_cell(cell->val1)->cell_state != 3) {
+                        flag = 0;
                     }
-                    if (cell->dependency_count > 2)
-                    {
-                        for (short i = cell->dependency_top_left_row; i <= cell->dependency_bottom_right_row; i++)
-                        {
-                            for (short j = cell->dependency_top_left_col; j <= cell->dependency_bottom_right_col; j++)
-                            {
-                                Cell *dependency_cell = get_cell(i, j);
-                                if (dependency_cell->state != CLEAN && dependency_cell->state != ZERO_ERROR)
-                                {
-                                    flag = 0;
-                                    break;
-                                }
-                            }
-                            if (flag == 0)
-                            {
+                }
+                if (dependency_count > 2) {
+                    const short start_row = cell_index_to_row(cell->val1);
+                    const short start_col = cell_index_to_col(cell->val1);
+                    const short end_row = cell_index_to_row(cell->val2);
+                    const short end_col = cell_index_to_col(cell->val2);
+                    for (short i = start_row; i <= end_row; i++) {
+                        for (short j = start_col; j <= end_col; j++) {
+                            const Cell *dependency_cell = get_cell(rowcol_to_cell_index(i, j));
+                            if (dependency_cell->cell_state != 0 && dependency_cell->cell_state != 3) {
+                                flag = 0;
                                 break;
                             }
                         }
+                        if (flag == 0) {
+                            break;
+                        }
                     }
-                    // for (int i = 0; i < cell->dependency_count; i++) {
-                    //     if (cell->dependencies[i]->state != CLEAN && cell->dependencies[i]->state != ZERO_ERROR) {
-                    //         flag = 0;
-                    //         break;
-                    //     }
-                    // }
-                    if (flag)
-                    {
-                        stack_push(cell);
-                    }
+                }
+                if (flag) {
+                    stack_push(cell_index);
                 }
             }
         }
-        else
-        {
-            SetIterator *iter = set_iterator_create(current->dependants_set);
-            Cell *cell;
-            while ((cell = set_iterator_next(iter)) != NULL)
-            {
-                if (cell->state == CIRCULAR_CHECKED)
-                {
-                    int flag = 1;
-                    if (cell->dependency_count == 1)
-                    {
-                        if (get_cell(cell->dependency_top_left_row, cell->dependency_top_left_col)->state != CLEAN && get_cell(cell->dependency_top_left_row, cell->dependency_top_left_col)->state != ZERO_ERROR)
-                        {
-                            flag = 0;
-                        }
-                    }
-                    if (cell->dependency_count == 2)
-                    {
-                        if (get_cell(cell->dependency_top_left_row, cell->dependency_top_left_col)->state != CLEAN && get_cell(cell->dependency_top_left_row, cell->dependency_top_left_col)->state != ZERO_ERROR)
-                        {
-                            flag = 0;
-                        }
-                        else if (get_cell(cell->dependency_bottom_right_row, cell->dependency_bottom_right_col)->state != CLEAN && get_cell(cell->dependency_bottom_right_row, cell->dependency_bottom_right_col)->state != ZERO_ERROR)
-                        {
-                            flag = 0;
-                        }
-                    }
-                    if (cell->dependency_count > 2)
-                    {
-                        for (short i = cell->dependency_top_left_row; i <= cell->dependency_bottom_right_row; i++)
-                        {
-                            for (short j = cell->dependency_top_left_col; j <= cell->dependency_bottom_right_col; j++)
-                            {
-                                Cell *dependency_cell = get_cell(i, j);
-                                if (dependency_cell->state != CLEAN && dependency_cell->state != ZERO_ERROR)
-                                {
-                                    flag = 0;
-                                    break;
-                                }
-                            }
-                            if (flag == 0)
-                            {
-                                break;
-                            }
-                        }
-                    }
-                    // for (int i = 0; i < cell->dependency_count; i++) {
-                    //     if (cell->dependencies[i]->state != CLEAN && cell->dependencies[i]->state != ZERO_ERROR) {
-                    //         flag = 0;
-                    //         break;
-                    //     }
-                    // }
-                    if (flag)
-                    {
-                        stack_push(cell);
-                    }
-                }
-            }
-            set_iterator_destroy(iter);
-        }
+        set_iterator_destroy(iter);
     }
 }
 
 void clean_cell(Cell *cell);
 
-int get_cell_value(const short row, const short col)
-{
-    Cell *cell = get_cell(row, col);
-    if (cell->state == CLEAN)
-    {
-        return cell->value;
-    }
-    clean_cell(cell);
-    return cell->value;
+int get_cell_value(const int cell_index) {
+    return get_cell(cell_index)->value;
 }
 
-pair function_compute(const Function function)
-{
+pair function_compute(const Cell* cell) {
     int ans = 0;
     pair ret;
-    const enum FunctionType type = function.type;
-    if (type == MIN)
-    {
-        const Cell *dep = get_cell(function.range.start_row, function.range.start_col);
-        if (dep->state == ZERO_ERROR)
-            goto zero_error_func;
-        ans = dep->value;
-        for (short i = function.range.start_row; i <= function.range.end_row; i++)
-        {
-            for (short j = function.range.start_col; j <= function.range.end_col; j++)
-            {
-                dep = get_cell(i, j);
-                if (dep->state == ZERO_ERROR)
-                    goto zero_error_func;
-                if (dep->value < ans)
-                {
-                    ans = dep->value;
-                }
-            }
-        }
-    }
-    else if (type == MAX)
-    {
-        const Cell *dep = get_cell(function.range.start_row, function.range.start_col);
-        if (dep->state == ZERO_ERROR)
-            goto zero_error_func;
-        ans = dep->value;
-        for (short i = function.range.start_row; i <= function.range.end_row; i++)
-        {
-            for (short j = function.range.start_col; j <= function.range.end_col; j++)
-            {
-                dep = get_cell(i, j);
-                if (dep->state == ZERO_ERROR)
-                    goto zero_error_func;
-                if (dep->value > ans)
-                {
-                    ans = dep->value;
-                }
-            }
-        }
-    }
-    else if (type == AVG)
-    {
-        ans = 0;
-        for (short i = function.range.start_row; i <= function.range.end_row; i++)
-        {
-            for (short j = function.range.start_col; j <= function.range.end_col; j++)
-            {
-                const Cell *dep = get_cell(i, j);
-                if (dep->state == ZERO_ERROR)
-                    goto zero_error_func;
-                ans += dep->value;
-            }
-        }
-        const int size = ((int)function.range.end_row - function.range.start_row + 1) * ((int)function.range.end_col - function.range.start_col + 1);
-        ans = ans / size;
-    }
-    else if (type == SUM)
-    {
-        ans = 0;
-        for (short i = function.range.start_row; i <= function.range.end_row; i++)
-        {
-            for (short j = function.range.start_col; j <= function.range.end_col; j++)
-            {
-                const Cell *dep = get_cell(i, j);
-                if (dep->state == ZERO_ERROR)
-                    goto zero_error_func;
-                ans += dep->value;
-            }
-        }
-    }
-    else if (type == STDEV)
-    {
-        float temp = 0;
-        float temp_sq = 0;
-        for (short i = function.range.start_row; i <= function.range.end_row; i++)
-        {
-            for (short j = function.range.start_col; j <= function.range.end_col; j++)
-            {
-                const Cell *dep = get_cell(i, j);
-                if (dep->state == ZERO_ERROR)
-                    goto zero_error_func;
-                temp += dep->value;
-            }
-        }
-        const int size = (function.range.end_row - function.range.start_row + 1) * (function.range.end_col - function.range.start_col + 1);
-        const float avg = temp / (float)size;
-
-        for (short i = function.range.start_row; i <= function.range.end_row; i++)
-        {
-            for (short j = function.range.start_col; j <= function.range.end_col; j++)
-            {
-                temp_sq += ((float)get_raw_value(i, j) - avg) * ((float)get_raw_value(i, j) - avg);
-            }
-        }
-
-        ans = (int)sqrt(temp_sq / (double)size);
-    }
-    else if (type == SLEEP)
-    {
-        if (function.value.type == INTEGER)
-        {
-            // sleep(function.value.value > 0 ? function.value.value : 0);
-            ans = function.value.value;
-        }
-        else if (function.value.type == CELL_REFERENCE)
-        {
-            const Cell *dep = function.value.cell;
-            if (dep->state == ZERO_ERROR)
+    const int function_type = cell->val2_type * 4 + cell->op;
+    if (function_type != SLEEP) {
+        const short start_row = cell_index_to_row(cell->val1);
+        const short start_col = cell_index_to_col(cell->val1);
+        const short end_row = cell_index_to_row(cell->val2);
+        const short end_col = cell_index_to_col(cell->val2);
+        if (function_type == MIN) {
+            const Cell *dep = get_cell(cell->val1);
+            if (dep->cell_state == 3)
                 goto zero_error_func;
-            ans = get_raw_value(function.value.cell->row, function.value.cell->col);
-            // sleep(ans > 0 ? ans : 0);
+            ans = dep->value;
+            for (short i = start_row; i <= end_row; i++) {
+                for (short j = start_col; j <= end_col; j++) {
+                    dep = get_cell(rowcol_to_cell_index(i, j));
+                    if (dep->cell_state == 3)
+                        goto zero_error_func;
+                    if (dep->value < ans) {
+                        ans = dep->value;
+                    }
+                }
+            }
+        } else if (function_type == MAX) {
+            const Cell *dep = get_cell(cell->val1);
+            if (dep->cell_state == 3)
+                goto zero_error_func;
+            ans = dep->value;
+            for (short i = start_row; i <= end_row; i++) {
+                for (short j = start_col; j <= end_col; j++) {
+                    dep = get_cell(rowcol_to_cell_index(i, j));
+                    if (dep->cell_state == 3)
+                        goto zero_error_func;
+                    if (dep->value > ans) {
+                        ans = dep->value;
+                    }
+                }
+            }
+        } else if (function_type == AVG) {
+            ans = 0;
+            int count = 0;
+            for (short i = start_row; i <= end_row; i++) {
+                for (short j = start_col; j <= end_col; j++) {
+                    const Cell *dep = get_cell(rowcol_to_cell_index(i, j));
+                    if (dep->cell_state == 3)
+                        goto zero_error_func;
+                    ans += dep->value;
+                    count++;
+                }
+            }
+            ans /= count;
+        } else if (function_type == SUM) {
+            ans = 0;
+            for (short i = start_row; i <= end_row; i++) {
+                for (short j = start_col; j <= end_col; j++) {
+                    const Cell *dep = get_cell(rowcol_to_cell_index(i, j));
+                    if (dep->cell_state == 3)
+                        goto zero_error_func;
+                    ans += dep->value;
+                }
+            }
+        } else if (function_type == STDEV) {
+            ans = 0;
+            double variance = 0.0;
+            for (short i = start_row; i <= end_row; i++) {
+                for (short j = start_col; j <= end_col; j++) {
+                    const Cell *dep = get_cell(rowcol_to_cell_index(i, j));
+                    if (dep->cell_state == 3)
+                        goto zero_error_func;
+                    ans += dep->value;
+                }
+            }
+            const int mean = ans / ((end_row - start_row + 1) * (end_col - start_col + 1));
+            for (short i = start_row; i <= end_row; i++) {
+                for (short j = start_col; j <= end_col; j++) {
+                    const Cell *dep = get_cell(rowcol_to_cell_index(i, j));
+                    if (dep->cell_state == 3)
+                        goto zero_error_func;
+                    variance += (dep->value - mean) * (dep->value - mean);
+                }
+            }
+            variance /= (end_row - start_row + 1) * (end_col - start_col + 1);
+            ans = (int)round(sqrt(variance));
         }
-        else
-        {
-            printf("Value holds Error State");
-            exit(1);
+    } else {
+        if (cell->val1_type == INTEGER) {
+            // sleep(cell->val1 > 0 ? cell->val1 : 0);
+            ans = cell->val1;
+        } else if (cell->val1_type == CELL_REFERENCE) {
+            const Cell *dep = get_cell(cell->val1);
+            if (dep->cell_state == 3)
+                goto zero_error_func;
+            ans = get_raw_value(cell->val1);
+            // sleep(ans > 0 ? ans : 0);
         }
     }
     ret.first = 1;
@@ -463,92 +239,61 @@ zero_error_func:
     return ret;
 }
 
-pair evaluate_cell(const Cell *cell)
-{
-    const Expression* expression = (get_expression(cell->row, cell->col));
+pair evaluate_cell(const Cell *cell) {
     int eval = 0;
-    if (expression->type == VALUE)
-    {
-        const Value value = expression->value;
-        if (value.type == INTEGER)
-        {
-            eval = value.value;
-        }
-        else if (value.type == CELL_REFERENCE)
-        {
-            eval = value.cell->value;
-            if (value.cell->state == ZERO_ERROR)
+    if (cell->expression_type == VALUE) {
+        if (cell->val1_type == INTEGER) {
+            eval = cell->val1;
+        } else if (cell->val1_type == CELL_REFERENCE) {
+            const Cell* dependency = get_cell(cell->val1);
+            eval = dependency->value;
+            if (dependency->cell_state == 3)
                 goto zero_error;
-        }
-        else
-        {
+        } else {
             printf("Value holds Error State");
             exit(1);
         }
-    }
-    else if (expression->type == ARITHMETIC)
-    {
-        const Arithmetic arithmetic = expression->arithmetic;
-        const Value value1 = arithmetic.value1;
-        const Value value2 = arithmetic.value2;
+    } else if (cell->expression_type == ARITHMETIC) {
         int val1 = 0;
         int val2 = 0;
-        if (value1.type == INTEGER)
-        {
-            val1 = value1.value;
-        }
-        else if (value1.type == CELL_REFERENCE)
-        {
-            val1 = value1.cell->value;
-            if (value1.cell->state == ZERO_ERROR)
+        if (cell->val1_type == INTEGER) {
+            val1 = cell->val1;
+        } else if (cell->val1_type == CELL_REFERENCE) {
+            const Cell* dependency = get_cell(cell->val1);
+            val1 = dependency->value;
+            if (dependency->cell_state == 3)
                 goto zero_error;
-        }
-        else
-        {
+        } else {
             printf("Value holds Error State");
             exit(1);
         }
 
-        if (value2.type == INTEGER)
-        {
-            val2 = value2.value;
-        }
-        else if (value2.type == CELL_REFERENCE)
-        {
-            val2 = value2.cell->value;
-            if (value2.cell->state == ZERO_ERROR)
+        if (cell->val2_type == INTEGER) {
+            val2 = cell->val2;
+        } else if (cell->val2_type == CELL_REFERENCE) {
+            const Cell* dependency = get_cell(cell->val2);
+            val2 = dependency->value;
+            if (dependency->cell_state == 3)
                 goto zero_error;
-        }
-        else
-        {
+        } else {
             printf("Value holds Error State");
             exit(1);
         }
 
-        if (arithmetic.type == ADD)
-        {
+        if (cell->op == ADD) {
             eval = val1 + val2;
-        }
-        else if (arithmetic.type == SUBTRACT)
-        {
+        } else if (cell->op == SUBTRACT) {
             eval = val1 - val2;
-        }
-        else if (arithmetic.type == MULTIPLY)
-        {
+        } else if (cell->op == MULTIPLY) {
             eval = val1 * val2;
-        }
-        else if (arithmetic.type == DIVIDE)
-        {
-            if (val2 == 0)
-            {
+        } else if (cell->op == DIVIDE) {
+            if (val2 == 0) {
                 goto zero_error;
             }
             eval = val1 / val2;
         }
-    }
-    else if (expression->type == FUNCTION)
-    {
-        return function_compute(expression->function);
+    } else if (cell->expression_type == FUNCTION) {
+        return function_compute(cell);
     }
     return (pair){1, eval};
 zero_error:
@@ -556,328 +301,144 @@ zero_error:
     return (pair){0, eval};
 }
 
-void clean_cell(Cell *cell)
-{
-    if (cell->state == CLEAN)
-    {
-        return;
-    }
-    clear_stack();
-    stack_push(cell);
-    while (!is_stack_empty())
-    {
-        Cell *current_cell = stack_top();
-        if (current_cell->state == CLEAN)
-        {
-            stack_pop();
-            continue;
+int handle_circular_connection(const int cell_index, const int prev_metadata, const int prev_val1, const int prev_val2) {
+    Cell *cell = get_cell(cell_index);
+    if (!circular_check(cell_index)) {
+        clear_debris();
+        const int dependency_count = get_dependency_count(cell);
+        // delete current cell as a dependant from its new dependencies
+        if (dependency_count == 1) {
+            delete_dependant(cell->val1, cell_index);
         }
-        int need_to_process_dependencies = 0;
-        if (current_cell->dependency_count == 1)
-        {
-            if (get_cell(current_cell->dependency_top_left_row, current_cell->dependency_top_left_col)->state == DIRTY)
-            {
-                stack_push(get_cell(current_cell->dependency_top_left_row, current_cell->dependency_top_left_col));
-                need_to_process_dependencies = 1;
+        if (dependency_count == 2) {
+            delete_dependant(cell->val1, cell_index);
+            delete_dependant(cell->val2, cell_index);
+        }
+        if (dependency_count > 2) {
+            const short start_row = cell_index_to_row(cell->val1);
+            const short start_col = cell_index_to_col(cell->val1);
+            const short end_row = cell_index_to_row(cell->val2);
+            const short end_col = cell_index_to_col(cell->val2);
+            for (short i = start_row; i <= end_row; i++) {
+                for (short j = start_col; j <= end_col; j++) {
+                    delete_dependant(rowcol_to_cell_index(i, j), cell_index);
+                }
             }
         }
-        if (current_cell->dependency_count == 2)
-        {
-            if (get_cell(current_cell->dependency_top_left_row, current_cell->dependency_top_left_col)->state == DIRTY)
-            {
-                stack_push(get_cell(current_cell->dependency_top_left_row, current_cell->dependency_top_left_col));
-                need_to_process_dependencies = 1;
+        // add current cell as a dependant to its old dependencies
+        const int prev_expression_type = (255 & prev_metadata) >> 6;
+        const int prev_val1_type = (63 & prev_metadata) >> 5;
+        const int prev_val2_type = (31 & prev_metadata) >> 4;
+        const int prev_op = (15 & prev_metadata) >> 2;
+        if (prev_expression_type == 0) {
+            if (prev_val1_type == 1) {
+                add_dependant(prev_val1, cell_index);
             }
-            else if (get_cell(current_cell->dependency_top_left_row, current_cell->dependency_top_left_col)->state == DIRTY)
-            {
-                stack_push(get_cell(current_cell->dependency_bottom_right_row, current_cell->dependency_bottom_right_col));
-                need_to_process_dependencies = 1;
+        } else if (prev_expression_type == 1) {
+            if (prev_val1_type == 1) {
+                add_dependant(prev_val1, cell_index);
             }
-        }
-        if (current_cell->dependency_count > 2)
-        {
-            for (short i = current_cell->dependency_top_left_row; i <= current_cell->dependency_bottom_right_row; i++)
-            {
-                for (short j = current_cell->dependency_top_left_col; j <= current_cell->dependency_bottom_right_col; j++)
-                {
-                    Cell *dependency_cell = get_cell(i, j);
-                    if (dependency_cell->state == DIRTY)
-                    {
-                        stack_push(dependency_cell);
-                        need_to_process_dependencies = 1;
-                        break;
+            if (prev_val2_type == 1) {
+                add_dependant(prev_val2, cell_index);
+            }
+        } else if (prev_expression_type == 2) {
+            if (prev_val2_type == 1 && prev_op == 1) {
+                add_dependant(prev_val1, cell_index);
+            } else {
+                const short start_row = cell_index_to_row(prev_val1);
+                const short start_col = cell_index_to_col(prev_val1);
+                const short end_row = cell_index_to_row(prev_val2);
+                const short end_col = cell_index_to_col(prev_val2);
+                for (short i = start_row; i <= end_row; i++) {
+                    for (short j = start_col; j <= end_col; j++) {
+                        add_dependant(rowcol_to_cell_index(i, j), cell_index);
                     }
                 }
-                if (need_to_process_dependencies == 1)
-                {
-                    break;
-                }
             }
         }
-        // for (int i = 0; i < current_cell->dependency_count; i++) {
-        //     if (current_cell->dependencies[i]->state == DIRTY) {
-        //         stack_push(current_cell->dependencies[i]);
-        //         need_to_process_dependencies = 1;
-        //         break;
-        //     }
-        // }
-        if (need_to_process_dependencies)
-        {
-            continue;
-        }
-        stack_pop();
-        const pair eval = evaluate_cell(current_cell);
-        current_cell->state = eval.first ? CLEAN : ZERO_ERROR;
-        current_cell->value = eval.second;
-    }
-}
-
-void copy_dependencies(Cell **dependencies, const size_t dependencies_count, short *rows, short *cols)
-{
-    for (int i = 0; i < min(2, dependencies_count); i++)
-    {
-        rows[i] = dependencies[i]->row;
-        cols[i] = dependencies[i]->col;
-    }
-}
-
-int handle_circular_connection(Cell *cell, short *rows_prev, short *cols_prev, const size_t dependencies_count, const Expression* expression)
-{
-    if (!circular_check(cell))
-    {
-        clear_debris();
-        // delete current cell as a dependant from its new dependencies
-        if (cell->dependency_count == 1)
-        {
-            delete_dependant(cell->dependency_top_left_row, cell->dependency_top_left_col, cell->row, cell->col);
-        }
-        if (cell->dependency_count == 2)
-        {
-            delete_dependant(cell->dependency_top_left_row, cell->dependency_top_left_col, cell->row, cell->col);
-            delete_dependant(cell->dependency_bottom_right_row, cell->dependency_bottom_right_col, cell->row, cell->col);
-        }
-        if (cell->dependency_count > 2)
-        {
-            for (short i = cell->dependency_top_left_row; i <= cell->dependency_bottom_right_row; i++)
-            {
-                for (short j = cell->dependency_top_left_col; j <= cell->dependency_bottom_right_col; j++)
-                {
-                    Cell *dependency_cell = get_cell(i, j);
-                    delete_dependant(dependency_cell->row, dependency_cell->col, cell->row, cell->col);
-                }
-            }
-        }
-        // for (int i = 0; i < cell->dependency_count; i++) {
-        //     delete_dependant(cell->dependencies[i]->row, cell->dependencies[i]->col, cell->row, cell->col);
-        // }
-        // add current cell as a dependant to its old dependencies
-        for (int i = 0; i < dependencies_count; i++)
-        {
-            add_dependant(rows_prev[i], cols_prev[i], cell->row, cell->col);
-        }
-        // restore the dependencies from before
-        cell->dependency_count = 0;
-        cell->dependency_top_left_row = -1;
-        cell->dependency_top_left_col = -1;
-        cell->dependency_bottom_right_row = -1;
-        cell->dependency_bottom_right_col = -1;
-        for (int i = 0; i < dependencies_count; i++)
-        {
-            update_dependencies(rows_prev, cols_prev, dependencies_count, cell->row, cell->col);
-        }
-        free(rows_prev);
-        free(cols_prev);
+        cell->expression_type = prev_expression_type;
+        cell->val1_type = prev_val1_type;
+        cell->val2_type = prev_val2_type;
+        cell->op = prev_op;
+        cell->val1 = prev_val1;
+        cell->val2 = prev_val2;
         return 0;
     }
-
-    set_expression_index(cell->row, cell->col, *expression);
-    if (LAZY_EVALUATION)
-        mark_dirty(cell);
-    else
-        clean_cells_forward(cell);
-    free(rows_prev);
-    free(cols_prev);
+    clean_cells(cell_index);
     return 1;
 }
 
-int set_expression(const short row, const short col, const Expression* expression)
-{
-    Cell *cell = get_cell(row, col);
-    Cell *dependency_top_left = get_cell(cell->dependency_top_left_row, cell->dependency_top_left_col);
-    Cell *dependency_bottom_right = get_cell(cell->dependency_bottom_right_row, cell->dependency_bottom_right_col);
-
-    const size_t dependencies_count = cell->dependency_count;
-    short *rows_prev = malloc(2 * sizeof(short)), *cols_prev = malloc(2 * sizeof(short));
-    if (rows_prev == NULL || cols_prev == NULL)
-    {
-        printf("Memory allocation failed\n");
-        exit(1);
-    }
-    Cell *dependencies[2];
-    dependencies[0] = get_cell(cell->dependency_top_left_row, cell->dependency_top_left_col);
-    dependencies[1] = get_cell(cell->dependency_bottom_right_row, cell->dependency_bottom_right_col);
-    copy_dependencies(dependencies, min(dependencies_count, 2), rows_prev, cols_prev);
-    if (dependencies_count == 1)
-    {
-        delete_dependant(dependencies[0]->row, dependencies[0]->col, row, col);
-    }
-    if (dependencies_count == 2)
-    {
-        delete_dependant(dependencies[0]->row, dependencies[0]->col, row, col);
-        delete_dependant(dependencies[1]->row, dependencies[1]->col, row, col);
-    }
-    if (dependencies_count > 2)
-    {
-        for (short i = dependencies[0]->row; i <= dependencies[1]->row; i++)
-        {
-            for (short j = dependencies[0]->col; j <= dependencies[1]->col; j++)
-            {
-                delete_dependant(i, j, row, col);
+int set_expression(const int cell_index, const int metadata, const int val1, const int val2) {
+    Cell *cell = get_cell(cell_index);
+    const int prev_metadata = cell->expression_type * 64 + cell->val1_type * 32 + cell->val2_type * 16 + cell->op * 4;
+    const int prev_val1 = cell->val1;
+    const int prev_val2 = cell->val2;
+    const int expression_type = (255 & metadata) >> 6;
+    const int val1_type = (63 & metadata) >> 5;
+    const int val2_type = (31 & metadata) >> 4;
+    const int op = (15 & metadata) >> 2;
+    if ((cell->expression_type == 0 && cell->val1_type == 1) || (cell->expression_type == 1 && cell->val1_type == 1) || (cell->expression_type == 2 && cell->val2_type == 1 && cell->op == 1 && cell->val1_type == 1)) {
+        delete_dependant(val1, cell_index);
+    } else if (cell->expression_type == 1 && cell->val2_type == 1) {
+        delete_dependant(val2, cell_index);
+    } else if (cell->expression_type == 2) {
+        const short start_row = cell_index_to_row(cell->val1);
+        const short start_col = cell_index_to_col(cell->val1);
+        const short end_row = cell_index_to_row(cell->val2);
+        const short end_col = cell_index_to_col(cell->val2);
+        for (short i = start_row; i <= end_row; i++) {
+            for (short j = start_col; j <= end_col; j++) {
+                delete_dependant(rowcol_to_cell_index(i, j), cell_index);
             }
         }
     }
-    // for (int i = 0; i < ; i++)
-    // {
-    //     delete_dependant(dependencies[i]->row, dependencies[i]->col, row, col);
-    // }
-
-    if (expression->type == VALUE)
-    {
-        if (expression->value.type == INTEGER)
-        {
-            if (cell->dependency_top_left_row != -1 && cell->dependency_top_left_col != -1)
-            {
-                cell->dependency_top_left_row = -1;
-                cell->dependency_top_left_col = -1;
-            }
-            if (cell->dependency_bottom_right_row != -1 && cell->dependency_bottom_right_col != -1)
-            {
-                cell->dependency_bottom_right_row = -1;
-                cell->dependency_bottom_right_col = -1;
-            }
-
-            cell->dependency_count = 0;
+    cell->expression_type = expression_type;
+    cell->val1_type = val1_type;
+    cell->val2_type = val2_type;
+    cell->op = op;
+    cell->val1 = val1;
+    cell->val2 = val2;
+    if ((expression_type == VALUE && val1_type == CELL_REFERENCE) || (expression_type == ARITHMETIC && val1_type == CELL_REFERENCE)) {
+        add_dependant(val1, cell_index);
+    }
+    if (expression_type == ARITHMETIC) {
+        if (val2_type == CELL_REFERENCE) {
+            add_dependant(val2, cell_index);
         }
-        else if (expression->value.type == CELL_REFERENCE)
-        {
-            const short rows[1] = {expression->value.cell->row};
-            const short cols[1] = {expression->value.cell->col};
-            update_dependencies(rows, cols, 1, row, col);
-            add_dependant(expression->value.cell->row, expression->value.cell->col, row, col);
+    } else if (expression_type == FUNCTION && !(val2_type == 1 && op == 1)) {
+        const short start_row = cell_index_to_row(val1);
+        const short start_col = cell_index_to_col(val1);
+        const short end_row = cell_index_to_row(val2);
+        const short end_col = cell_index_to_col(val2);
+        for (short i = start_row; i <= end_row; i++) {
+            for (short j = start_col; j <= end_col; j++) {
+                add_dependant(rowcol_to_cell_index(i, j), cell_index);
+            }
         }
-        else
-        {
-            printf("Value holds Error State");
-            exit(1);
+    } else if (expression_type == FUNCTION) {
+        if (val1_type == CELL_REFERENCE) {
+            add_dependant(val1, cell_index);
         }
     }
-    else if (expression->type == ARITHMETIC)
-    {
-        const enum ValueType type1 = expression->arithmetic.value1.type;
-        const enum ValueType type2 = expression->arithmetic.value2.type;
-        if (type1 == INTEGER && type2 == INTEGER)
-        {
-            cell->dependency_count = 0;
-            if (cell->dependency_top_left_row != -1 && cell->dependency_top_left_col != -1)
-            {
-                cell->dependency_top_left_row = -1;
-                cell->dependency_top_left_col = -1;
-            }
-            if (cell->dependency_bottom_right_row != -1 && cell->dependency_bottom_right_col != -1)
-            {
-                cell->dependency_bottom_right_row = -1;
-                cell->dependency_bottom_right_col = -1;
-            }
-        }
-        else if ((type1 != CELL_REFERENCE) != (type2 != CELL_REFERENCE))
-        {
-            const short row_ = type1 == CELL_REFERENCE ? expression->arithmetic.value1.cell->row : expression->arithmetic.value2.cell->row;
-            const short col_ = type1 == CELL_REFERENCE ? expression->arithmetic.value1.cell->col : expression->arithmetic.value2.cell->col;
-            const short rows[1] = {row_};
-            const short cols[1] = {col_};
-            update_dependencies(rows, cols, 1, row, col);
-            add_dependant(row_, col_, row, col);
-        }
-        else
-        {
-            const short rows[2] = {expression->arithmetic.value1.cell->row, expression->arithmetic.value2.cell->row};
-            const short cols[2] = {expression->arithmetic.value1.cell->col, expression->arithmetic.value2.cell->col};
-            update_dependencies(rows, cols, 2, row, col);
-            add_dependant(expression->arithmetic.value1.cell->row, expression->arithmetic.value1.cell->col, row, col);
-            add_dependant(expression->arithmetic.value2.cell->row, expression->arithmetic.value2.cell->col, row, col);
-        }
-    }
-    else if (expression->type == FUNCTION && expression->function.type != SLEEP)
-    {
-        const int size = (expression->function.range.end_row - expression->function.range.start_row + 1) * (expression->function.range.end_col - expression->function.range.start_col + 1);
-        short *rows = malloc(2 * sizeof(short));
-        short *cols = malloc(2 * sizeof(short));
-        rows[0] = expression->function.range.start_row;
-        rows[1] = expression->function.range.end_row;
-        cols[0] = expression->function.range.start_col;
-        cols[1] = expression->function.range.end_col;
-        for (short i = expression->function.range.start_row; i <= expression->function.range.end_row; i++)
-        {
-            for (short j = expression->function.range.start_col; j <= expression->function.range.end_col; j++)
-            {
-                add_dependant(i, j, row, col);
-            }
-        }
-        update_dependencies(rows, cols, size, row, col);
-        free(cols);
-        free(rows);
-    }
-    else if (expression->type == FUNCTION && expression->function.type == SLEEP)
-    {
-        if (expression->function.value.type == INTEGER)
-        {
-            cell->dependency_count = 0;
-            if (cell->dependency_top_left_row != -1 && cell->dependency_top_left_col != -1)
-            {
-                cell->dependency_top_left_row = -1;
-                cell->dependency_top_left_col = -1;
-            }
-            if (cell->dependency_bottom_right_row != -1 && cell->dependency_bottom_right_col != -1)
-            {
-                cell->dependency_bottom_right_row = -1;
-                cell->dependency_bottom_right_col = -1;
-            }
-        }
-        else if (expression->function.value.type == CELL_REFERENCE)
-        {
-            add_dependant(expression->function.value.cell->row, expression->function.value.cell->col, row, col);
-            const short rows[1] = {expression->function.value.cell->row};
-            const short cols[1] = {expression->function.value.cell->col};
-            update_dependencies(rows, cols, 1, row, col);
-        }
-    }
-    return handle_circular_connection(cell, rows_prev, cols_prev, dependencies_count, expression);
+    return handle_circular_connection(cell_index, prev_metadata, prev_val1, prev_val2);
 }
 
-int set_value_expression(const short row, const short col, const Value value)
-{
-    Expression* expression = get_expression(row, col);
-    expression->type = VALUE;
-    expression->value = value;
-    return set_expression(row, col, expression);
+int set_value_expression(const int cell_index, const Value value) {
+    const int metadata = value.type == INTEGER ? 0 : 32;
+    return set_expression(cell_index, metadata, value.value, 0);
 }
 
-int set_arithmetic_expression(const short row, const short col, const Arithmetic arithmetic)
-{
-    Expression* expression = get_expression(row, col);
-    expression->type = ARITHMETIC;
-    expression->arithmetic = arithmetic;
-    return set_expression(row, col, expression);
+int set_arithmetic_expression(const int cell_index, const Arithmetic arithmetic) {
+    const int metadata = 64 + arithmetic.value1.type * 32 + arithmetic.value2.type * 16 + arithmetic.type * 4;
+    return set_expression(cell_index, metadata, arithmetic.value1.value, arithmetic.value2.value);
 }
 
-int set_function_expression(const short row, const short col, const Function function)
-{
-    Expression* expression = get_expression(row, col);
-    expression->type = FUNCTION;
-    expression->function = function;
-    return set_expression(row, col, expression);
-}
+int set_function_expression(const int cell_index, const Function function) {
+    if (function.type == SLEEP) {
+        const int metadata = 128 + function.value.type * 32 + function.type * 4;
+        return set_expression(cell_index, metadata, function.value.value, 0);
+    }
+    const int metadata = 128 + function.type * 4;
+    return set_expression(cell_index, metadata, function.range.start_index, function.range.end_index);
 
-// int set_sleep_expression(const short row, const short col, const Value value) {
-//     return set_expression(row, col, 2, value, (Value) {0, 0, NULL}, -1, 5, (Range) {0, -1, -1, -1, -1});
-// }
+}

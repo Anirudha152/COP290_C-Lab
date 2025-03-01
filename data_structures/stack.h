@@ -5,9 +5,9 @@
 
 void initialize_stack();
 void destroy_stack();
-Cell *stack_pop();
-void stack_push(Cell *element);
-Cell* stack_top();
+int stack_pop();
+void stack_push(int element);
+int stack_top();
 int stack_size();
 int is_stack_empty();
 void clear_stack();

@@ -1,18 +1,8 @@
 #include "set.h"
 #include <stdlib.h>
 
-static int compare_cells(const Cell *a, const Cell *b) {
-    if (a->row != b->row) {
-        return a->row - b->row;
-    }
-    return a->col - b->col;
-}
-
-static int compare_with_coords(const Cell *cell, short row, short col) {
-    if (cell->row != row) {
-        return cell->row - row;
-    }
-    return cell->col - col;
+static int compare_cells(const int cell_index_1, const int cell_index_2) {
+    return cell_index_1 - cell_index_2;
 }
 
 static int height(SetNode *node) {
@@ -24,8 +14,8 @@ static int balance_factor(SetNode *node) {
 }
 
 static void update_height(SetNode *node) {
-    int left_height = height(node->left);
-    int right_height = height(node->right);
+    const int left_height = height(node->left);
+    const int right_height = height(node->right);
     node->height = (left_height > right_height ? left_height : right_height) + 1;
 }
 
@@ -85,10 +75,10 @@ static SetNode* rotate_left(Set *set, SetNode *x) {
     return y;
 }
 
-static SetNode* create_node(Cell *cell) {
+static SetNode* create_node(int cell_index) {
     SetNode *node = malloc(sizeof(SetNode));
     if (!node) return NULL;
-    node->cell = cell;
+    node->cell_index = cell_index;
     node->left = NULL;
     node->right = NULL;
     node->parent = NULL;
@@ -100,7 +90,7 @@ static void balance_up_to_root(Set *set, SetNode *node) {
     SetNode *current = node;
     while (current) {
         update_height(current);
-        int balance = balance_factor(current);
+        const int balance = balance_factor(current);
         if (balance > 1) {
             if (balance_factor(current->left) < 0) {
                 current->left = rotate_left(set, current->left);
@@ -117,10 +107,10 @@ static void balance_up_to_root(Set *set, SetNode *node) {
     }
 }
 
-static SetNode* find_node(SetNode *root, short row, short col) {
+static SetNode* find_node(SetNode *root, const int cell_index) {
     SetNode *current = root;
     while (current) {
-        int cmp = compare_with_coords(current->cell, row, col);
+        const int cmp = compare_cells(current->cell_index, cell_index);
         if (cmp == 0) return current;
         if (cmp > 0) current = current->left;
         else current = current->right;
@@ -135,7 +125,7 @@ static SetNode* find_min(SetNode *node) {
     return node;
 }
 
-static SetNode* find_successor(SetNode *node) {
+static SetNode* find_successor(const SetNode *node) {
     if (node->right) {
         return find_min(node->right);
     }
@@ -179,10 +169,10 @@ void set_destroy(Set *set) {
     free(set);
 }
 
-int set_insert(Set *set, Cell *cell) {
-    if (!set || !cell) return 0;
+int set_insert(Set *set, int cell_index) {
+    if (!set) return 0;
     if (!set->root) {
-        set->root = create_node(cell);
+        set->root = create_node(cell_index);
         if (!set->root) return 0;
         set->size++;
         return 1;
@@ -191,15 +181,15 @@ int set_insert(Set *set, Cell *cell) {
     SetNode *parent = NULL;
     while (current) {
         parent = current;
-        int cmp = compare_cells(cell, current->cell);
+        const int cmp = compare_cells(cell_index, current->cell_index);
         if (cmp == 0) return 0;
         if (cmp < 0) current = current->left;
         else current = current->right;
     }
-    SetNode *new_node = create_node(cell);
+    SetNode *new_node = create_node(cell_index);
     if (!new_node) return 0;
     new_node->parent = parent;
-    if (compare_cells(cell, parent->cell) < 0) {
+    if (compare_cells(cell_index, parent->cell_index) < 0) {
         parent->left = new_node;
     } else {
         parent->right = new_node;
@@ -209,9 +199,9 @@ int set_insert(Set *set, Cell *cell) {
     return 1;
 }
 
-int set_remove(Set *set, short row, short col) {
+int set_remove(Set *set, const int cell_index) {
     if (!set) return 0;
-    SetNode *node = find_node(set->root, row, col);
+    SetNode *node = find_node(set->root, cell_index);
     if (!node) return 0;
     SetNode *balance_start = NULL;
     if (!node->left || !node->right) {
@@ -235,7 +225,7 @@ int set_remove(Set *set, short row, short col) {
     }
     else {
         SetNode *successor = find_successor(node);
-        node->cell = successor->cell;
+        node->cell_index = successor->cell_index;
 
         SetNode *parent = successor->parent;
         SetNode *child = successor->right;
@@ -261,10 +251,10 @@ int set_remove(Set *set, short row, short col) {
     return 1;
 }
 
-Cell* set_find(Set *set, short row, short col) {
-    if (!set) return NULL;
-    SetNode *node = find_node(set->root, row, col);
-    return node ? node->cell : NULL;
+int set_find(Set *set, const int cell_index) {
+    if (!set) return 0;
+    const SetNode *node = find_node(set->root, cell_index);
+    return node ? 1 : 0;
 }
 
 void set_clear(Set *set) {
@@ -311,12 +301,12 @@ SetIterator* set_iterator_create(Set *set) {
     return iterator;
 }
 
-Cell* set_iterator_next(SetIterator *iterator) {
-    if (!iterator || !iterator->current) return NULL;
+int set_iterator_next(SetIterator *iterator) {
+    if (!iterator || !iterator->current) return -1;
 
-    Cell *cell = iterator->current->cell;
+    const int cell_index = iterator->current->cell_index;
     iterator->current = find_successor(iterator->current);
-    return cell;
+    return cell_index;
 }
 
 void set_iterator_destroy(SetIterator *iterator) {

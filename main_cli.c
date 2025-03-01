@@ -23,7 +23,6 @@ void print_usage(const char *program_name) {
     printf("Options:\n");
     printf("  -s, --scroll <n>               Lines to scroll in spreadsheet using WASD (default 10)\n");
     printf("  -v, --viewport <n>             Max number of rows/cols to display        (default 10)\n");
-    printf("  -l, --lazy <0/1>               Lazy evaluation enabled                   (default 1 )\n");
     printf("  -h, --help                     Show this help message\n");
     printf("%lu", sizeof(Value));
 }
@@ -42,7 +41,6 @@ void parse_arguments(int argc, char *argv[]) {
         }
         if ((strcmp(argv[i], "-s") == 0 || strcmp(argv[i], "--scroll") == 0) && i + 1 < argc) SCROLL_AMOUNT = atoi(argv[++i]);
         else if ((strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--viewport") == 0) && i + 1 < argc) VIEWPORT_ROWS = atoi(argv[++i]) < TOT_ROWS ? atoi(argv[i]) : TOT_ROWS;
-        else if ((strcmp(argv[i], "-l") == 0 || strcmp(argv[i], "--lazy") == 0) && i + 1 < argc) LAZY_EVALUATION = atoi(argv[++i]);
         else {
             printf("Unknown argument: %s\n", argv[i]);
             print_usage(argv[0]);
