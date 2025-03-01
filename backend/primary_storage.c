@@ -118,6 +118,19 @@ void initialize_expression(Expression *expression)
     value.value = 0;
     expression->value = value;
 }
+DependantsArray *initialize_deparray()
+{
+    DependantsArray *dep_array = (DependantsArray *)malloc(sizeof(DependantsArray));
+    dep_array->rows = (short *)malloc(CAPACITY * sizeof(short));
+    dep_array->cols = (short *)malloc(CAPACITY * sizeof(short));
+    for (int i = 0; i < CAPACITY; i++)
+    {
+        dep_array->rows[i] = -1;
+        dep_array->cols[i] = -1;
+    }
+    dep_array->size = 0;
+    return dep_array;
+}
 
 void initialize_cell(Cell *cell, const short row, const short col)
 {
@@ -134,19 +147,7 @@ void initialize_cell(Cell *cell, const short row, const short col)
     cell->dependants_array = initialize_deparray();
 }
 
-DependantsArray *initialize_deparray()
-{
-    DependantsArray *dep_array = (DependantsArray *)malloc(sizeof(DependantsArray));
-    dep_array->rows = (short *)malloc(CAPACITY * sizeof(short));
-    dep_array->cols = (short *)malloc(CAPACITY * sizeof(short));
-    for (int i = 0; i < CAPACITY; i++)
-    {
-        dep_array->rows[i] = -1;
-        dep_array->cols[i] = -1;
-    }
-    dep_array->size = 0;
-    return dep_array;
-}
+
 
 int get_raw_value(const short row, const short col)
 {
