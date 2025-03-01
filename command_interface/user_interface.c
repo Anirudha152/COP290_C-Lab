@@ -143,7 +143,7 @@ int run() {
 		last_command.status = 1;
 		last_command.time_taken = 0.0;
 	} else {
-		last_command = process_expression(command, state->start_row, state->start_col);
+		last_command = process_expression(command);
 	}
 	draw_grid();
 	clock_gettime(CLOCK_REALTIME, &finish);

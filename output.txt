@@ -1,189 +1,189 @@
-[1] > X11=SLEEP(4) --> (ok) [0.000s]
-[2] > V6=STDEV(K12:T20) --> (ok) [0.000s]
-[3] > O4=SUM(B7:X17) --> (ok) [0.000s]
-[4] > F4=AVG(D10:J12) --> (ok) [0.000s]
-[5] > R19=A20-C13 --> (ok) [0.000s]
-[6] > N1=AVG(C6:J16) --> (ok) [0.000s]
-[7] > N3=L19*W10 --> (ok) [0.000s]
-[8] > N13=SLEEP(3) --> (ok) [0.000s]
-[9] > O10=SLEEP(3) --> (ok) [0.000s]
-[10] > E11=SLEEP(4) --> (ok) [0.000s]
-[11] > Q18=D20*97 --> (ok) [0.000s]
-[12] > C13=C2 --> (ok) [0.000s]
-[13] > X10=SLEEP(2) --> (ok) [0.000s]
-[14] > N19=E20+12 --> (ok) [0.000s]
-[15] > H2=I7 --> (ok) [0.000s]
-[16] > N14=SLEEP(2) --> (ok) [0.000s]
-[17] > T10=C8+90 --> (ok) [0.000s]
-[18] > T13=SLEEP(5) --> (ok) [0.000s]
-[19] > Y17=SLEEP(3) --> (ok) [0.000s]
-[20] > G17=I5+W17 --> (ok) [0.000s]
-[21] > S14=-41 --> (ok) [0.000s]
-[22] > A9=SUM(C6:H6) --> (ok) [0.000s]
-[23] > L5=STDEV(M3:M17) --> (ok) [0.000s]
-[24] > M10=U2/15 --> (ok) [0.000s]
-[25] > N5=W11 --> (ok) [0.000s]
-[26] > R9=I17 --> (ok) [0.000s]
-[27] > O17=K4 --> (ok) [0.000s]
-[28] > J3=MIN(E8:Y15) --> (ok) [0.000s]
-[29] > A10=J15-Z15 --> (ok) [0.000s]
-[30] > R3=-23 --> (ok) [0.000s]
-[31] > O3=J9-27 --> (ok) [0.000s]
-[32] > L17=-10 --> (ok) [0.000s]
-[33] > Z4=SLEEP(4) --> (ok) [0.000s]
-[34] > C4=G10 --> (ok) [0.000s]
-[35] > H8=AVG(D11:F20) --> (ok) [0.000s]
-[36] > Z1=M10 --> (ok) [0.000s]
-[37] > Q17=-15 --> (ok) [0.000s]
-[38] > R2=F11/100 --> (ok) [0.000s]
-[39] > O15=STDEV(H10:H17) --> (ok) [0.000s]
-[40] > D10=Z9+90 --> (ok) [0.000s]
-[41] > Q16=-75 --> (ok) [0.000s]
-[42] > T7=10 --> (ok) [0.000s]
-[43] > H14=38 --> (ok) [0.000s]
-[44] > L3=SLEEP(3) --> (ok) [0.000s]
-[45] > U5=-23 --> (ok) [0.000s]
-[46] > R5=SLEEP(4) --> (ok) [0.000s]
-[47] > Y9=D16*88 --> (ok) [0.000s]
-[48] > S19=SLEEP(1) --> (ok) [0.000s]
-[49] > D20=16 --> (ok) [0.000s]
-[50] > A11=O11-91 --> (ok) [0.000s]
-[51] > K11=SUM(M7:X17) --> (ok) [0.000s]
-[52] > V19=26 --> (ok) [0.000s]
-[53] > V2=-83 --> (ok) [0.000s]
-[54] > E1=3 --> (ok) [0.000s]
-[55] > L18=F20 --> (ok) [0.000s]
-[56] > J5=SLEEP(3) --> (ok) [0.000s]
-[57] > D15=SLEEP(4) --> (ok) [0.000s]
-[58] > A15=SLEEP(5) --> (ok) [0.000s]
-[59] > B8=C19*O8 --> (ok) [0.000s]
-[60] > C17=SLEEP(4) --> (ok) [0.000s]
-[61] > W12=SUM(K10:P10) --> (ok) [0.000s]
-[62] > V20=SLEEP(5) --> (ok) [0.000s]
-[63] > B3=A7 --> (ok) [0.000s]
-[64] > M9=M14-64 --> (ok) [0.000s]
-[65] > K6=-35 --> (ok) [0.000s]
-[66] > A5=MAX(H11:S16) --> (ok) [0.000s]
-[67] > Z13=-90 --> (ok) [0.000s]
-[68] > F6=M17 --> (ok) [0.000s]
-[69] > S4=P20 --> (ok) [0.000s]
-[70] > K10=SLEEP(4) --> (ok) [0.000s]
-[71] > O19=STDEV(G2:I7) --> (ok) [0.000s]
-[72] > D6=SLEEP(3) --> (ok) [0.000s]
-[73] > L4=Q19 --> (ok) [0.000s]
-[74] > P16=SLEEP(3) --> (ok) [0.000s]
-[75] > V18=-57 --> (ok) [0.000s]
-[76] > P2=S17+C20 --> (ok) [0.000s]
-[77] > C19=MAX(A1:X2) --> (ok) [0.000s]
-[78] > R15=F16 --> (ok) [0.000s]
-[79] > X16=STDEV(B1:H20) --> (ok) [0.000s]
-[80] > C5=S17 --> (ok) [0.000s]
-[81] > A7=G20 --> (ok) [0.000s]
-[82] > P7=MIN(B9:E19) --> (ok) [0.000s]
-[83] > J8=SLEEP(5) --> (ok) [0.000s]
-[84] > C20=55 --> (ok) [0.000s]
-[85] > T20=Z14-C4 --> (ok) [0.000s]
-[86] > C15=N8 --> (ok) [0.000s]
-[87] > U2=-5 --> (ok) [0.000s]
-[88] > M4=L12 --> (ok) [0.000s]
-[89] > X19=MIN(K11:S18) --> (ok) [0.000s]
-[90] > D3=C9 --> (ok) [0.000s]
-[91] > T14=22 --> (ok) [0.000s]
-[92] > H10=Z9/Z9 --> (ok) [0.000s]
-[93] > P4=SUM(G11:W18) --> (ok) [0.000s]
-[94] > Q13=A16 --> (ok) [0.000s]
-[95] > T15=O16 --> (ok) [0.000s]
-[96] > B6=SLEEP(4) --> (ok) [0.000s]
-[97] > R1=69 --> (ok) [0.000s]
-[98] > D2=47 --> (ok) [0.000s]
-[99] > L10=E13-S4 --> (ok) [0.000s]
-[100] > Y15=SLEEP(3) --> (ok) [0.000s]
-[101] > I13=-73 --> (ok) [0.000s]
-[102] > A12=N2 --> (ok) [0.000s]
-[103] > J12=SLEEP(3) --> (ok) [0.000s]
-[104] > V11=SLEEP(3) --> (ok) [0.000s]
-[105] > O14=H2 --> (ok) [0.000s]
-[106] > A4=SLEEP(3) --> (ok) [0.000s]
-[107] > G6=S15 --> (ok) [0.000s]
-[108] > U1=I1/Q12 --> (ok) [0.000s]
-[109] > G1=SLEEP(1) --> (ok) [0.000s]
-[110] > W17=AVG(F4:I8) --> (ok) [0.000s]
-[111] > K13=Q1*H13 --> (ok) [0.000s]
-[112] > M6=K10/B10 --> (ok) [0.000s]
-[113] > M12=-34 --> (ok) [0.000s]
-[114] > L16=-72 --> (ok) [0.000s]
-[115] > B17=STDEV(L5:L8) --> (ok) [0.000s]
-[116] > I17=V12+67 --> (ok) [0.000s]
-[117] > Z5=SLEEP(2) --> (ok) [0.000s]
-[118] > L15=MIN(F9:G16) --> (ok) [0.000s]
-[119] > A6=-58 --> (ok) [0.000s]
-[120] > K16=STDEV(D2:R2) --> (ok) [0.000s]
-[121] > N16=-65 --> (ok) [0.000s]
-[122] > C10=-14 --> (ok) [0.000s]
-[123] > T9=P17 --> (ok) [0.000s]
-[124] > D1=I5 --> (ok) [0.000s]
-[125] > T17=47 --> (ok) [0.000s]
-[126] > Z20=SLEEP(5) --> (ok) [0.000s]
-[127] > S17=I16 --> (ok) [0.000s]
-[128] > D9=SLEEP(1) --> (ok) [0.000s]
-[129] > H16=Z20 --> (ok) [0.000s]
-[130] > E5=SUM(F7:N10) --> (ok) [0.000s]
-[131] > M16=N2 --> (ok) [0.000s]
-[132] > Z15=AVG(L5:N17) --> (ok) [0.000s]
-[133] > R13=SLEEP(3) --> (ok) [0.000s]
-[134] > W2=B1 --> (ok) [0.000s]
-[135] > P8=SLEEP(3) --> (ok) [0.000s]
-[136] > X15=K13+S2 --> (ok) [0.000s]
-[137] > E19=L14 --> (ok) [0.000s]
-[138] > H7=T20 --> (ok) [0.000s]
-[139] > U7=SLEEP(3) --> (ok) [0.000s]
-[140] > N2=-79 --> (ok) [0.000s]
-[141] > Y19=-18 --> (ok) [0.000s]
-[142] > E12=N14 --> (ok) [0.000s]
-[143] > Z11=71 --> (ok) [0.000s]
-[144] > F3=SLEEP(2) --> (ok) [0.000s]
-[145] > J16=B15-65 --> (ok) [0.000s]
-[146] > E8=-10 --> (ok) [0.000s]
-[147] > T8=I16*10 --> (ok) [0.000s]
-[148] > U20=AVG(K3:O3) --> (ok) [0.000s]
-[149] > X6=52 --> (ok) [0.000s]
-[150] > T3=N20/W20 --> (ok) [0.000s]
-[151] > L6=G2*85 --> (ok) [0.000s]
-[152] > U16=D3 --> (ok) [0.000s]
-[153] > Z3=E14-10 --> (ok) [0.000s]
-[154] > R18=93 --> (ok) [0.000s]
-[155] > V13=SLEEP(1) --> (ok) [0.000s]
-[156] > A13=T3+39 --> (ok) [0.000s]
-[157] > I9=SUM(N8:P8) --> (ok) [0.000s]
-[158] > J11=59 --> (ok) [0.000s]
-[159] > S13=80 --> (ok) [0.000s]
-[160] > D14=C18/65 --> (ok) [0.000s]
-[161] > V5=MIN(D9:X11) --> (ok) [0.000s]
-[162] > D11=B16 --> (ok) [0.000s]
-[163] > W5=SLEEP(1) --> (ok) [0.000s]
-[164] > P6=X9 --> (ok) [0.000s]
-[165] > J9=SLEEP(3) --> (ok) [0.000s]
-[166] > F17=SLEEP(1) --> (ok) [0.000s]
-[167] > V4=SLEEP(2) --> (ok) [0.000s]
-[168] > M7=SLEEP(2) --> (ok) [0.000s]
-[169] > E15=SLEEP(3) --> (ok) [0.000s]
-[170] > Z8=V3 --> (ok) [0.000s]
-[171] > I1=L17/F9 --> (ok) [0.000s]
-[172] > K17=S12*A11 --> (ok) [0.000s]
-[173] > B12=N14*93 --> (ok) [0.000s]
-[174] > D13=A3 --> (ok) [0.000s]
-[175] > P13=SLEEP(1) --> (ok) [0.000s]
-[176] > L14=B3 --> (ok) [0.000s]
-[177] > Q15=Y13 --> (ok) [0.000s]
-[178] > P9=C1 --> (ok) [0.000s]
-[179] > U13=O12/87 --> (ok) [0.000s]
-[180] > G3=SLEEP(3) --> (ok) [0.000s]
-[181] > D12=E18-78 --> (ok) [0.000s]
-[182] > Z2=-97 --> (ok) [0.000s]
-[183] > Y8=SLEEP(3) --> (ok) [0.000s]
-[184] > J18=MIN(M10:M11) --> (ok) [0.000s]
-[185] > M14=SLEEP(2) --> (ok) [0.000s]
-[186] > Y7=-97 --> (ok) [0.000s]
+[1] > X11=SLEEP(4) --> (ok) [0.219s]
+[2] > V6=STDEV(K12:T20) --> (ok) [0.029s]
+[3] > O4=SUM(B7:X17) --> (ok) [0.019s]
+[4] > F4=AVG(D10:J12) --> (ok) [0.013s]
+[5] > R19=A20-C13 --> (ok) [0.036s]
+[6] > N1=AVG(C6:J16) --> (ok) [0.011s]
+[7] > N3=L19*W10 --> (ok) [0.009s]
+[8] > N13=SLEEP(3) --> (ok) [0.011s]
+[9] > O10=SLEEP(3) --> (ok) [0.011s]
+[10] > E11=SLEEP(4) --> (ok) [0.012s]
+[11] > Q18=D20*97 --> (ok) [0.010s]
+[12] > C13=C2 --> (ok) [0.009s]
+[13] > X10=SLEEP(2) --> (ok) [0.012s]
+[14] > N19=E20+12 --> (ok) [0.008s]
+[15] > H2=I7 --> (ok) [0.003s]
+[16] > N14=SLEEP(2) --> (ok) [0.012s]
+[17] > T10=C8+90 --> (ok) [0.008s]
+[18] > T13=SLEEP(5) --> (ok) [0.013s]
+[19] > Y17=SLEEP(3) --> (ok) [0.011s]
+[20] > G17=I5+W17 --> (ok) [0.010s]
+[21] > S14=-41 --> (ok) [0.005s]
+[22] > A9=SUM(C6:H6) --> (ok) [0.011s]
+[23] > L5=STDEV(M3:M17) --> (ok) [0.011s]
+[24] > M10=U2/15 --> (ok) [0.008s]
+[25] > N5=W11 --> (ok) [0.003s]
+[26] > R9=I17 --> (ok) [0.004s]
+[27] > O17=K4 --> (ok) [0.003s]
+[28] > J3=MIN(E8:Y15) --> (ok) [0.016s]
+[29] > A10=J15-Z15 --> (ok) [0.012s]
+[30] > R3=-23 --> (ok) [0.002s]
+[31] > O3=J9-27 --> (ok) [0.007s]
+[32] > L17=-10 --> (ok) [0.003s]
+[33] > Z4=SLEEP(4) --> (ok) [0.011s]
+[34] > C4=G10 --> (ok) [0.013s]
+[35] > H8=AVG(D11:F20) --> (ok) [0.013s]
+[36] > Z1=M10 --> (ok) [0.003s]
+[37] > Q17=-15 --> (ok) [0.003s]
+[38] > R2=F11/100 --> (ok) [0.011s]
+[39] > O15=STDEV(H10:H17) --> (ok) [0.013s]
+[40] > D10=Z9+90 --> (ok) [0.007s]
+[41] > Q16=-75 --> (ok) [0.003s]
+[42] > T7=10 --> (ok) [0.003s]
+[43] > H14=38 --> (ok) [0.004s]
+[44] > L3=SLEEP(3) --> (ok) [0.015s]
+[45] > U5=-23 --> (ok) [0.003s]
+[46] > R5=SLEEP(4) --> (ok) [0.016s]
+[47] > Y9=D16*88 --> (ok) [0.009s]
+[48] > S19=SLEEP(1) --> (ok) [0.014s]
+[49] > D20=16 --> (ok) [0.004s]
+[50] > A11=O11-91 --> (ok) [0.008s]
+[51] > K11=SUM(M7:X17) --> (ok) [0.019s]
+[52] > V19=26 --> (ok) [0.003s]
+[53] > V2=-83 --> (ok) [0.002s]
+[54] > E1=3 --> (ok) [0.003s]
+[55] > L18=F20 --> (ok) [0.004s]
+[56] > J5=SLEEP(3) --> (ok) [0.012s]
+[57] > D15=SLEEP(4) --> (ok) [0.014s]
+[58] > A15=SLEEP(5) --> (ok) [0.012s]
+[59] > B8=C19*O8 --> (ok) [0.011s]
+[60] > C17=SLEEP(4) --> (ok) [0.013s]
+[61] > W12=SUM(K10:P10) --> (ok) [0.011s]
+[62] > V20=SLEEP(5) --> (ok) [0.015s]
+[63] > B3=A7 --> (ok) [0.005s]
+[64] > M9=M14-64 --> (ok) [0.008s]
+[65] > K6=-35 --> (ok) [0.002s]
+[66] > A5=MAX(H11:S16) --> (ok) [0.016s]
+[67] > Z13=-90 --> (ok) [0.002s]
+[68] > F6=M17 --> (ok) [0.009s]
+[69] > S4=P20 --> (ok) [0.005s]
+[70] > K10=SLEEP(4) --> (ok) [0.019s]
+[71] > O19=STDEV(G2:I7) --> (ok) [0.012s]
+[72] > D6=SLEEP(3) --> (ok) [0.011s]
+[73] > L4=Q19 --> (ok) [0.003s]
+[74] > P16=SLEEP(3) --> (ok) [0.015s]
+[75] > V18=-57 --> (ok) [0.002s]
+[76] > P2=S17+C20 --> (ok) [0.009s]
+[77] > C19=MAX(A1:X2) --> (ok) [0.012s]
+[78] > R15=F16 --> (ok) [0.016s]
+[79] > X16=STDEV(B1:H20) --> (ok) [0.014s]
+[80] > C5=S17 --> (ok) [0.004s]
+[81] > A7=G20 --> (ok) [0.004s]
+[82] > P7=MIN(B9:E19) --> (ok) [0.012s]
+[83] > J8=SLEEP(5) --> (ok) [0.014s]
+[84] > C20=55 --> (ok) [0.003s]
+[85] > T20=Z14-C4 --> (ok) [0.011s]
+[86] > C15=N8 --> (ok) [0.006s]
+[87] > U2=-5 --> (ok) [0.005s]
+[88] > M4=L12 --> (ok) [0.003s]
+[89] > X19=MIN(K11:S18) --> (ok) [0.012s]
+[90] > D3=C9 --> (ok) [0.004s]
+[91] > T14=22 --> (ok) [0.003s]
+[92] > H10=Z9/Z9 --> (ok) [0.013s]
+[93] > P4=SUM(G11:W18) --> (ok) [0.014s]
+[94] > Q13=A16 --> (ok) [0.004s]
+[95] > T15=O16 --> (ok) [0.004s]
+[96] > B6=SLEEP(4) --> (ok) [0.013s]
+[97] > R1=69 --> (ok) [0.003s]
+[98] > D2=47 --> (ok) [0.003s]
+[99] > L10=E13-S4 --> (ok) [0.011s]
+[100] > Y15=SLEEP(3) --> (ok) [0.012s]
+[101] > I13=-73 --> (ok) [0.003s]
+[102] > A12=N2 --> (ok) [0.003s]
+[103] > J12=SLEEP(3) --> (ok) [0.015s]
+[104] > V11=SLEEP(3) --> (ok) [0.014s]
+[105] > O14=H2 --> (ok) [0.007s]
+[106] > A4=SLEEP(3) --> (ok) [0.013s]
+[107] > G6=S15 --> (ok) [0.006s]
+[108] > U1=I1/Q12 --> (ok) [0.016s]
+[109] > G1=SLEEP(1) --> (ok) [0.012s]
+[110] > W17=AVG(F4:I8) --> (ok) [0.013s]
+[111] > K13=Q1*H13 --> (ok) [0.009s]
+[112] > M6=K10/B10 --> (ok) [0.009s]
+[113] > M12=-34 --> (ok) [0.003s]
+[114] > L16=-72 --> (ok) [0.003s]
+[115] > B17=STDEV(L5:L8) --> (ok) [0.013s]
+[116] > I17=V12+67 --> (ok) [0.012s]
+[117] > Z5=SLEEP(2) --> (ok) [0.011s]
+[118] > L15=MIN(F9:G16) --> (ok) [0.011s]
+[119] > A6=-58 --> (ok) [0.003s]
+[120] > K16=STDEV(D2:R2) --> (ok) [0.011s]
+[121] > N16=-65 --> (ok) [0.003s]
+[122] > C10=-14 --> (ok) [0.003s]
+[123] > T9=P17 --> (ok) [0.004s]
+[124] > D1=I5 --> (ok) [0.004s]
+[125] > T17=47 --> (ok) [0.003s]
+[126] > Z20=SLEEP(5) --> (ok) [0.011s]
+[127] > S17=I16 --> (ok) [0.005s]
+[128] > D9=SLEEP(1) --> (ok) [0.012s]
+[129] > H16=Z20 --> (ok) [0.005s]
+[130] > E5=SUM(F7:N10) --> (ok) [0.012s]
+[131] > M16=N2 --> (ok) [0.005s]
+[132] > Z15=AVG(L5:N17) --> (ok) [0.011s]
+[133] > R13=SLEEP(3) --> (ok) [0.012s]
+[134] > W2=B1 --> (ok) [0.004s]
+[135] > P8=SLEEP(3) --> (ok) [0.012s]
+[136] > X15=K13+S2 --> (ok) [0.010s]
+[137] > E19=L14 --> (ok) [0.005s]
+[138] > H7=T20 --> (ok) [0.005s]
+[139] > U7=SLEEP(3) --> (ok) [0.012s]
+[140] > N2=-79 --> (ok) [0.004s]
+[141] > Y19=-18 --> (ok) [0.002s]
+[142] > E12=N14 --> (ok) [0.004s]
+[143] > Z11=71 --> (ok) [0.002s]
+[144] > F3=SLEEP(2) --> (ok) [0.018s]
+[145] > J16=B15-65 --> (ok) [0.010s]
+[146] > E8=-10 --> (ok) [0.003s]
+[147] > T8=I16*10 --> (ok) [0.010s]
+[148] > U20=AVG(K3:O3) --> (ok) [0.011s]
+[149] > X6=52 --> (ok) [0.002s]
+[150] > T3=N20/W20 --> (ok) [0.008s]
+[151] > L6=G2*85 --> (ok) [0.012s]
+[152] > U16=D3 --> (ok) [0.004s]
+[153] > Z3=E14-10 --> (ok) [0.008s]
+[154] > R18=93 --> (ok) [0.002s]
+[155] > V13=SLEEP(1) --> (ok) [0.012s]
+[156] > A13=T3+39 --> (ok) [0.007s]
+[157] > I9=SUM(N8:P8) --> (ok) [0.013s]
+[158] > J11=59 --> (ok) [0.003s]
+[159] > S13=80 --> (ok) [0.003s]
+[160] > D14=C18/65 --> (ok) [0.014s]
+[161] > V5=MIN(D9:X11) --> (ok) [0.015s]
+[162] > D11=B16 --> (ok) [0.005s]
+[163] > W5=SLEEP(1) --> (ok) [0.011s]
+[164] > P6=X9 --> (ok) [0.004s]
+[165] > J9=SLEEP(3) --> (ok) [0.021s]
+[166] > F17=SLEEP(1) --> (ok) [0.013s]
+[167] > V4=SLEEP(2) --> (ok) [0.013s]
+[168] > M7=SLEEP(2) --> (ok) [0.015s]
+[169] > E15=SLEEP(3) --> (ok) [0.014s]
+[170] > Z8=V3 --> (ok) [0.003s]
+[171] > I1=L17/F9 --> (ok) [0.011s]
+[172] > K17=S12*A11 --> (ok) [0.010s]
+[173] > B12=N14*93 --> (ok) [0.010s]
+[174] > D13=A3 --> (ok) [0.004s]
+[175] > P13=SLEEP(1) --> (ok) [0.013s]
+[176] > L14=B3 --> (ok) [0.006s]
+[177] > Q15=Y13 --> (ok) [0.007s]
+[178] > P9=C1 --> (ok) [0.004s]
+[179] > U13=O12/87 --> (ok) [0.008s]
+[180] > G3=SLEEP(3) --> (ok) [0.013s]
+[181] > D12=E18-78 --> (ok) [0.011s]
+[182] > Z2=-97 --> (ok) [0.002s]
+[183] > Y8=SLEEP(3) --> (ok) [0.014s]
+[184] > J18=MIN(M10:M11) --> (ok) [0.015s]
+[185] > M14=SLEEP(2) --> (ok) [0.016s]
+[186] > Y7=-97 --> (ok) [0.002s]
 A1 : 0 --> Value: 0, State: Clean
 A2 : 0 --> Value: 0, State: Clean
 A3 : 0 --> Value: 0, State: Clean
@@ -193,10 +193,10 @@ A6 : -58 --> Value: -58, State: Clean
 A7 : G20 --> Value: 0, State: Clean
 A8 : 0 --> Value: 0, State: Clean
 A9 : SUM(C6:H6) --> Value: 3, State: Clean
-A10 : J15 - Z15 --> Value: 0, State: Zero Error
-A11 : O11 - 91 --> Value: -91, State: Clean
+A10 : B1 - B1 --> Value: 0, State: Zero Error
+A11 : B1 - A1 --> Value: -91, State: Clean
 A12 : N2 --> Value: -79, State: Clean
-A13 : T3 + 39 --> Value: 0, State: Zero Error
+A13 : B1 + A1 --> Value: 0, State: Zero Error
 A14 : 0 --> Value: 0, State: Clean
 A15 : SLEEP(5) --> Value: 5, State: Clean
 A16 : 0 --> Value: 0, State: Clean
@@ -211,11 +211,11 @@ B4 : 0 --> Value: 0, State: Clean
 B5 : 0 --> Value: 0, State: Clean
 B6 : SLEEP(4) --> Value: 4, State: Clean
 B7 : 0 --> Value: 0, State: Clean
-B8 : C19 * O8 --> Value: 0, State: Zero Error
+B8 : B1 * B1 --> Value: 0, State: Zero Error
 B9 : 0 --> Value: 0, State: Clean
 B10 : 0 --> Value: 0, State: Clean
 B11 : 0 --> Value: 0, State: Clean
-B12 : N14 * 93 --> Value: 186, State: Clean
+B12 : B1 * A1 --> Value: 186, State: Clean
 B13 : 0 --> Value: 0, State: Clean
 B14 : 0 --> Value: 0, State: Clean
 B15 : 0 --> Value: 0, State: Clean
@@ -253,11 +253,11 @@ D6 : SLEEP(3) --> Value: 3, State: Clean
 D7 : 0 --> Value: 0, State: Clean
 D8 : 0 --> Value: 0, State: Clean
 D9 : SLEEP(1) --> Value: 1, State: Clean
-D10 : Z9 + 90 --> Value: 90, State: Clean
+D10 : B1 + A1 --> Value: 90, State: Clean
 D11 : B16 --> Value: 0, State: Clean
-D12 : E18 - 78 --> Value: -78, State: Clean
+D12 : B1 - A1 --> Value: -78, State: Clean
 D13 : A3 --> Value: 0, State: Clean
-D14 : C18 / 65 --> Value: 0, State: Clean
+D14 : B1 / A1 --> Value: 0, State: Clean
 D15 : SLEEP(4) --> Value: 4, State: Clean
 D16 : 0 --> Value: 0, State: Clean
 D17 : 0 --> Value: 0, State: Clean
@@ -320,7 +320,7 @@ G13 : 0 --> Value: 0, State: Clean
 G14 : 0 --> Value: 0, State: Clean
 G15 : 0 --> Value: 0, State: Clean
 G16 : 0 --> Value: 0, State: Clean
-G17 : I5 + W17 --> Value: 0, State: Zero Error
+G17 : B1 + B1 --> Value: 0, State: Zero Error
 G18 : 0 --> Value: 0, State: Clean
 G19 : 0 --> Value: 0, State: Clean
 G20 : 0 --> Value: 0, State: Clean
@@ -333,7 +333,7 @@ H6 : 0 --> Value: 0, State: Clean
 H7 : T20 --> Value: 0, State: Clean
 H8 : AVG(D11:F20) --> Value: -1, State: Clean
 H9 : 0 --> Value: 0, State: Clean
-H10 : Z9 / Z9 --> Value: 0, State: Zero Error
+H10 : B1 / B1 --> Value: 0, State: Zero Error
 H11 : 0 --> Value: 0, State: Clean
 H12 : 0 --> Value: 0, State: Clean
 H13 : 0 --> Value: 0, State: Clean
@@ -344,7 +344,7 @@ H17 : 0 --> Value: 0, State: Clean
 H18 : 0 --> Value: 0, State: Clean
 H19 : 0 --> Value: 0, State: Clean
 H20 : 0 --> Value: 0, State: Clean
-I1 : L17 / F9 --> Value: 0, State: Zero Error
+I1 : B1 / B1 --> Value: 0, State: Zero Error
 I2 : 0 --> Value: 0, State: Clean
 I3 : 0 --> Value: 0, State: Clean
 I4 : 0 --> Value: 0, State: Clean
@@ -360,7 +360,7 @@ I13 : -73 --> Value: -73, State: Clean
 I14 : 0 --> Value: 0, State: Clean
 I15 : 0 --> Value: 0, State: Clean
 I16 : 0 --> Value: 0, State: Clean
-I17 : V12 + 67 --> Value: 67, State: Clean
+I17 : B1 + A1 --> Value: 67, State: Clean
 I18 : 0 --> Value: 0, State: Clean
 I19 : 0 --> Value: 0, State: Clean
 I20 : 0 --> Value: 0, State: Clean
@@ -379,7 +379,7 @@ J12 : SLEEP(3) --> Value: 3, State: Clean
 J13 : 0 --> Value: 0, State: Clean
 J14 : 0 --> Value: 0, State: Clean
 J15 : 0 --> Value: 0, State: Clean
-J16 : B15 - 65 --> Value: -65, State: Clean
+J16 : B1 - A1 --> Value: -65, State: Clean
 J17 : 0 --> Value: 0, State: Clean
 J18 : MIN(M10:M11) --> Value: 0, State: Clean
 J19 : 0 --> Value: 0, State: Clean
@@ -396,11 +396,11 @@ K9 : 0 --> Value: 0, State: Clean
 K10 : SLEEP(4) --> Value: 4, State: Clean
 K11 : SUM(M7:X17) --> Value: 0, State: Zero Error
 K12 : 0 --> Value: 0, State: Clean
-K13 : Q1 * H13 --> Value: 0, State: Clean
+K13 : B1 * B1 --> Value: 0, State: Clean
 K14 : 0 --> Value: 0, State: Clean
 K15 : 0 --> Value: 0, State: Clean
-K16 : STDEV(D2:R2) --> Value: 27, State: Clean
-K17 : S12 * A11 --> Value: 0, State: Clean
+K16 : STDEV(D2:R2) --> Value: 28, State: Clean
+K17 : B1 * B1 --> Value: 0, State: Clean
 K18 : 0 --> Value: 0, State: Clean
 K19 : 0 --> Value: 0, State: Clean
 K20 : 0 --> Value: 0, State: Clean
@@ -409,11 +409,11 @@ L2 : 0 --> Value: 0, State: Clean
 L3 : SLEEP(3) --> Value: 3, State: Clean
 L4 : Q19 --> Value: 0, State: Clean
 L5 : STDEV(M3:M17) --> Value: 0, State: Zero Error
-L6 : G2 * 85 --> Value: 0, State: Clean
+L6 : B1 * A1 --> Value: 0, State: Clean
 L7 : 0 --> Value: 0, State: Clean
 L8 : 0 --> Value: 0, State: Clean
 L9 : 0 --> Value: 0, State: Clean
-L10 : E13 - S4 --> Value: 0, State: Clean
+L10 : B1 - B1 --> Value: 0, State: Clean
 L11 : 0 --> Value: 0, State: Clean
 L12 : 0 --> Value: 0, State: Clean
 L13 : 0 --> Value: 0, State: Clean
@@ -429,11 +429,11 @@ M2 : 0 --> Value: 0, State: Clean
 M3 : 0 --> Value: 0, State: Clean
 M4 : L12 --> Value: 0, State: Clean
 M5 : 0 --> Value: 0, State: Clean
-M6 : K10 / B10 --> Value: 0, State: Zero Error
+M6 : B1 / B1 --> Value: 0, State: Zero Error
 M7 : SLEEP(2) --> Value: 2, State: Clean
 M8 : 0 --> Value: 0, State: Clean
-M9 : M14 - 64 --> Value: -62, State: Clean
-M10 : U2 / 15 --> Value: 0, State: Clean
+M9 : 1 - 0 --> Value: -62, State: Clean
+M10 : B1 / A1 --> Value: 0, State: Clean
 M11 : 0 --> Value: 0, State: Clean
 M12 : -34 --> Value: -34, State: Clean
 M13 : 0 --> Value: 0, State: Clean
@@ -446,7 +446,7 @@ M19 : 0 --> Value: 0, State: Clean
 M20 : 0 --> Value: 0, State: Clean
 N1 : AVG(C6:J16) --> Value: 0, State: Zero Error
 N2 : -79 --> Value: -79, State: Clean
-N3 : L19 * W10 --> Value: 0, State: Clean
+N3 : B1 * B1 --> Value: 0, State: Clean
 N4 : 0 --> Value: 0, State: Clean
 N5 : W11 --> Value: 0, State: Clean
 N6 : 0 --> Value: 0, State: Clean
@@ -462,11 +462,11 @@ N15 : 0 --> Value: 0, State: Clean
 N16 : -65 --> Value: -65, State: Clean
 N17 : 0 --> Value: 0, State: Clean
 N18 : 0 --> Value: 0, State: Clean
-N19 : E20 + 12 --> Value: 12, State: Clean
+N19 : 1 + 0 --> Value: 12, State: Clean
 N20 : 0 --> Value: 0, State: Clean
 O1 : 0 --> Value: 0, State: Clean
 O2 : 0 --> Value: 0, State: Clean
-O3 : J9 - 27 --> Value: -24, State: Clean
+O3 : B1 - A1 --> Value: -24, State: Clean
 O4 : SUM(B7:X17) --> Value: 0, State: Zero Error
 O5 : 0 --> Value: 0, State: Clean
 O6 : 0 --> Value: 0, State: Clean
@@ -482,12 +482,12 @@ O15 : STDEV(H10:H17) --> Value: 0, State: Zero Error
 O16 : 0 --> Value: 0, State: Clean
 O17 : K4 --> Value: 0, State: Clean
 O18 : 0 --> Value: 0, State: Clean
-O19 : STDEV(G2:I7) --> Value: 0, State: Clean
+O19 : STDEV(G2:I7) --> Value: 1, State: Clean
 O20 : 0 --> Value: 0, State: Clean
 P1 : 0 --> Value: 0, State: Clean
-P2 : S17 + C20 --> Value: 55, State: Clean
+P2 : B1 + B1 --> Value: 55, State: Clean
 P3 : 0 --> Value: 0, State: Clean
-P4 : SUM(G11:W18) --> Value: 0, State: Zero Error
+P4 : SUM(G11:W18) --> Value: 0, State: Circular Checked
 P5 : 0 --> Value: 0, State: Clean
 P6 : X9 --> Value: 0, State: Clean
 P7 : MIN(B9:E19) --> Value: 0, State: Zero Error
@@ -521,11 +521,11 @@ Q14 : 0 --> Value: 0, State: Clean
 Q15 : Y13 --> Value: 0, State: Clean
 Q16 : -75 --> Value: -75, State: Clean
 Q17 : -15 --> Value: -15, State: Clean
-Q18 : D20 * 97 --> Value: 1552, State: Clean
+Q18 : B1 * A1 --> Value: 1552, State: Clean
 Q19 : 0 --> Value: 0, State: Clean
 Q20 : 0 --> Value: 0, State: Clean
 R1 : 69 --> Value: 69, State: Clean
-R2 : F11 / 100 --> Value: 0, State: Clean
+R2 : B1 / 0 --> Value: 0, State: Clean
 R3 : -23 --> Value: -23, State: Clean
 R4 : 0 --> Value: 0, State: Clean
 R5 : SLEEP(4) --> Value: 4, State: Clean
@@ -542,7 +542,7 @@ R15 : F16 --> Value: 0, State: Clean
 R16 : 0 --> Value: 0, State: Clean
 R17 : 0 --> Value: 0, State: Clean
 R18 : 93 --> Value: 93, State: Clean
-R19 : A20 - C13 --> Value: 0, State: Clean
+R19 : B1 - B1 --> Value: 0, State: Clean
 R20 : 0 --> Value: 0, State: Clean
 S1 : 0 --> Value: 0, State: Clean
 S2 : 0 --> Value: 0, State: Clean
@@ -566,14 +566,14 @@ S19 : SLEEP(1) --> Value: 1, State: Clean
 S20 : 0 --> Value: 0, State: Clean
 T1 : 0 --> Value: 0, State: Clean
 T2 : 0 --> Value: 0, State: Clean
-T3 : N20 / W20 --> Value: 0, State: Zero Error
+T3 : B1 / B1 --> Value: 0, State: Zero Error
 T4 : 0 --> Value: 0, State: Clean
 T5 : 0 --> Value: 0, State: Clean
 T6 : 0 --> Value: 0, State: Clean
 T7 : 10 --> Value: 10, State: Clean
-T8 : I16 * 10 --> Value: 0, State: Clean
+T8 : B1 * A1 --> Value: 0, State: Clean
 T9 : P17 --> Value: 0, State: Clean
-T10 : C8 + 90 --> Value: 90, State: Clean
+T10 : B1 + A1 --> Value: 90, State: Clean
 T11 : 0 --> Value: 0, State: Clean
 T12 : 0 --> Value: 0, State: Clean
 T13 : SLEEP(5) --> Value: 5, State: Clean
@@ -583,8 +583,8 @@ T16 : 0 --> Value: 0, State: Clean
 T17 : 47 --> Value: 47, State: Clean
 T18 : 0 --> Value: 0, State: Clean
 T19 : 0 --> Value: 0, State: Clean
-T20 : Z14 - C4 --> Value: 0, State: Clean
-U1 : I1 / Q12 --> Value: 0, State: Zero Error
+T20 : B1 - B1 --> Value: 0, State: Clean
+U1 : 1 / 1 --> Value: 0, State: Zero Error
 U2 : -5 --> Value: -5, State: Clean
 U3 : 0 --> Value: 0, State: Clean
 U4 : 0 --> Value: 0, State: Clean
@@ -596,7 +596,7 @@ U9 : 0 --> Value: 0, State: Clean
 U10 : 0 --> Value: 0, State: Clean
 U11 : 0 --> Value: 0, State: Clean
 U12 : 0 --> Value: 0, State: Clean
-U13 : O12 / 87 --> Value: 0, State: Clean
+U13 : B1 / A1 --> Value: 0, State: Clean
 U14 : 0 --> Value: 0, State: Clean
 U15 : 0 --> Value: 0, State: Clean
 U16 : D3 --> Value: 0, State: Clean
@@ -658,7 +658,7 @@ X11 : SLEEP(4) --> Value: 4, State: Clean
 X12 : 0 --> Value: 0, State: Clean
 X13 : 0 --> Value: 0, State: Clean
 X14 : 0 --> Value: 0, State: Clean
-X15 : K13 + S2 --> Value: 0, State: Clean
+X15 : B1 + B1 --> Value: 0, State: Clean
 X16 : STDEV(B1:H20) --> Value: 0, State: Zero Error
 X17 : 0 --> Value: 0, State: Clean
 X18 : 0 --> Value: 0, State: Clean
@@ -672,7 +672,7 @@ Y5 : 0 --> Value: 0, State: Clean
 Y6 : 0 --> Value: 0, State: Clean
 Y7 : -97 --> Value: -97, State: Clean
 Y8 : SLEEP(3) --> Value: 3, State: Clean
-Y9 : D16 * 88 --> Value: 0, State: Clean
+Y9 : B1 * A1 --> Value: 0, State: Clean
 Y10 : 0 --> Value: 0, State: Clean
 Y11 : 0 --> Value: 0, State: Clean
 Y12 : 0 --> Value: 0, State: Clean
