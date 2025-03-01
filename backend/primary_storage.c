@@ -5,6 +5,7 @@
 #include "../data_structures/set.h"
 
 Cell *table;
+short CAPACITY = 4;
 typedef struct Expression_table
 {
     Expression *expressions;
@@ -13,7 +14,7 @@ typedef struct Expression_table
 } Expression_table;
 
 Expression_table *expression_table;
-Expression* empty_expression;
+Expression *empty_expression;
 
 void initialize_expression_table()
 {
@@ -90,7 +91,16 @@ void destroy_storage()
         for (short j = 0; j < TOT_COLS; j++)
         {
             const Cell *cell = &table[i * TOT_COLS + j];
-            set_destroy(cell->dependants);
+            if (cell->dependants_type == ArrayForm)
+            {
+                free(cell->dependants_array->rows);
+                free(cell->dependants_array->cols);
+                free(cell->dependants_array);
+            }
+            else
+            {
+                set_destroy(cell->dependants_set);
+            }
         }
     }
     free(table);
@@ -121,7 +131,21 @@ void initialize_cell(Cell *cell, const short row, const short col)
     cell->dependency_bottom_right_row = -1;
     cell->dependency_bottom_right_col = -1;
     cell->dependency_count = 0;
-    cell->dependants = set_create();
+    cell->dependants_array = initialize_deparray();
+}
+
+DependantsArray *initialize_deparray()
+{
+    DependantsArray *dep_array = (DependantsArray *)malloc(sizeof(DependantsArray));
+    dep_array->rows = (short *)malloc(CAPACITY * sizeof(short));
+    dep_array->cols = (short *)malloc(CAPACITY * sizeof(short));
+    for (int i = 0; i < CAPACITY; i++)
+    {
+        dep_array->rows[i] = -1;
+        dep_array->cols[i] = -1;
+    }
+    dep_array->size = 0;
+    return dep_array;
 }
 
 int get_raw_value(const short row, const short col)
@@ -180,13 +204,63 @@ void add_dependant(const short source_row, const short source_col, const short r
     }
     Cell *cell = &table[(int)source_row * (int)TOT_COLS + (int)source_col];
     Cell *dependant = &table[(int)row * (int)TOT_COLS + (int)col];
-    set_insert(cell->dependants, dependant);
+    if (cell->dependants_type == ArrayForm)
+    {
+        if (cell->dependants_array->size == CAPACITY)
+        {
+            cell->dependants_type = SetForm;
+            Set *dep_set = set_create();
+            for (int i = 0; i < CAPACITY; i++)
+            {
+                Cell *dep = &table[(int)cell->dependants_array->rows[i] * (int)TOT_COLS + (int)cell->dependants_array->cols[i]];
+                set_insert(dep_set, dep);
+            }
+            set_insert(dep_set, dependant);
+            cell->dependants_set = dep_set;
+            free(cell->dependants_array->rows);
+            free(cell->dependants_array->cols);
+            free(cell->dependants_array);
+        }
+        else
+        {
+            cell->dependants_array->rows[cell->dependants_array->size] = row;
+            cell->dependants_array->cols[cell->dependants_array->size] = col;
+            cell->dependants_array->size++;
+        }
+    }
+    else
+    {
+        set_insert(cell->dependants_set, dependant);
+    }
 }
 
 void delete_dependant(const short source_row, const short source_col, const short row, const short col)
 {
     Cell *source = &table[(int)source_row * (int)TOT_COLS + (int)source_col];
-    set_remove(source->dependants, row, col);
+    if (source->dependants_type == ArrayForm)
+    {
+        int ind = -1;
+        for (int i = 0; i < CAPACITY; i++)
+        {
+            if ((row == source->dependants_array->rows[i]) && (col == source->dependants_array->cols[i]))
+            {
+                ind = i;
+                break;
+            }
+        }
+        for (int i = ind; i < CAPACITY - 1; i++)
+        {
+            source->dependants_array->rows[i] = source->dependants_array->rows[i + 1];
+            source->dependants_array->cols[i] = source->dependants_array->cols[i + 1];
+        }
+        source->dependants_array->size--;
+        source->dependants_array->rows[source->dependants_array->size] = -1;
+        source->dependants_array->rows[source->dependants_array->size] = -1;
+    }
+    else
+    {
+        set_remove(source->dependants_set, row, col);
+    }
 }
 
 Cell *get_cell(const short row, const short col)

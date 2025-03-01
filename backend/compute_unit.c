@@ -20,35 +20,80 @@ int circular_check(Cell *start_cell)
         if (current->state == CLEAN || current->state == DIRTY || current->state == ZERO_ERROR)
             stack_push_mem(mem);
         current->state = DFS_IN_PROGRESS;
-        if (set_size(current->dependants) == 0)
+        // if (set_size(current->dependants_set) == 0)
+        // {
+        //     stack_pop();
+        //     current->state = CIRCULAR_CHECKED;
+        //     continue;
+        // }
+        if (current->dependants_type == ArrayForm)
         {
-            stack_pop();
-            current->state = CIRCULAR_CHECKED;
-            continue;
-        }
-        SetIterator *iter = set_iterator_create(current->dependants);
-        int done = 1;
-        Cell *cell;
-        while ((cell = set_iterator_next(iter)) != NULL)
-        {
-            if (cell->state == CLEAN || cell->state == DIRTY || cell->state == ZERO_ERROR)
+            if (current->dependants_array->size == 0)
             {
-                stack_push(cell);
-                done = 0;
-            }
-            else if (cell->state == DFS_IN_PROGRESS)
-            {
-                clear_stack();
-                set_iterator_destroy(iter);
-                return 0;
+                stack_pop();
+                current->state = CIRCULAR_CHECKED;
+                continue;
             }
         }
-        if (done)
+        else
         {
-            stack_pop();
-            current->state = CIRCULAR_CHECKED;
+            if (set_size(current->dependants_set) == 0)
+            {
+                stack_pop;
+                current->state = CIRCULAR_CHECKED;
+                continue;
+            }
         }
-        set_iterator_destroy(iter);
+        if (current->dependants_type == ArrayForm)
+        {
+            int done = 1;
+            Cell *cell;
+            for (int i = 0; i < current->dependants_array->size; i++)
+            {
+                cell = get_cell(current->dependants_array->rows[i], current->dependants_array->cols[i]);
+                if (cell->state == CLEAN || cell->state == DIRTY || cell->state == ZERO_ERROR)
+                {
+                    stack_push(cell);
+                    done = 0;
+                }
+                else if (cell->state == DFS_IN_PROGRESS)
+                {
+                    clear_stack();
+                    return 0;
+                }
+            }
+            if (done)
+            {
+                stack_pop();
+                current->state = CIRCULAR_CHECKED;
+            }
+        }
+        else
+        {
+            SetIterator *iter = set_iterator_create(current->dependants_set);
+            int done = 1;
+            Cell *cell;
+            while ((cell = set_iterator_next(iter)) != NULL)
+            {
+                if (cell->state == CLEAN || cell->state == DIRTY || cell->state == ZERO_ERROR)
+                {
+                    stack_push(cell);
+                    done = 0;
+                }
+                else if (cell->state == DFS_IN_PROGRESS)
+                {
+                    clear_stack();
+                    set_iterator_destroy(iter);
+                    return 0;
+                }
+            }
+            if (done)
+            {
+                stack_pop();
+                current->state = CIRCULAR_CHECKED;
+            }
+            set_iterator_destroy(iter);
+        }
     }
     return 1;
 }
@@ -74,29 +119,69 @@ void mark_dirty(Cell *start_cell)
     {
         Cell *current = stack_top();
         current->state = DFS_IN_PROGRESS;
-        if (set_size(current->dependants) == 0)
+        // if (set_size(current->dependants) == 0)
+        // {
+        //     stack_pop();
+        //     current->state = DIRTY;
+        //     continue;
+        // }
+        if (current->dependants_type == ArrayForm)
         {
-            stack_pop();
-            current->state = DIRTY;
-            continue;
-        }
-        SetIterator *iter = set_iterator_create(current->dependants);
-        int done = 1;
-        Cell *cell;
-        while ((cell = set_iterator_next(iter)) != NULL)
-        {
-            if (cell->state == CIRCULAR_CHECKED)
+            if (current->dependants_array->size == 0)
             {
-                stack_push(cell);
-                done = 0;
+                stack_pop();
+                current->state = DIRTY;
+                continue;
             }
         }
-        if (done)
+        else
         {
-            stack_pop();
-            current->state = DIRTY;
+            if (set_size(current->dependants_set) == 0)
+            {
+                stack_pop;
+                current->state = DIRTY;
+                continue;
+            }
         }
-        set_iterator_destroy(iter);
+        if (current->dependants_type == ArrayForm)
+        {
+            int done = 1;
+            Cell *cell;
+            for (int i = 0; i < cell->dependants_array->size; i++)
+            {
+                cell = get_cell(current->dependants_array->rows[i], current->dependants_array->cols[i]);
+                if (cell->state == CIRCULAR_CHECKED)
+                {
+                    stack_push(cell);
+                    done = 0;
+                }
+            }
+            if (done)
+            {
+                stack_pop();
+                current->state = DIRTY;
+            }
+        }
+        else
+        {
+            SetIterator *iter = set_iterator_create(current->dependants_set);
+            int done = 1;
+            Cell *cell;
+            while ((cell = set_iterator_next(iter)) != NULL)
+            {
+                if (cell->state == CIRCULAR_CHECKED)
+                {
+                    stack_push(cell);
+                    done = 0;
+                }
+            }
+            if (done)
+            {
+                stack_pop();
+                current->state = DIRTY;
+            }
+            set_iterator_destroy(iter);
+        }
     }
 }
 
@@ -111,63 +196,125 @@ void clean_cells_forward(Cell *start_cell)
         pair eval = evaluate_cell(current);
         current->state = eval.first ? CLEAN : ZERO_ERROR;
         current->value = eval.second;
-        SetIterator *iter = set_iterator_create(current->dependants);
-        Cell *cell;
-        while ((cell = set_iterator_next(iter)) != NULL)
+        if (current->dependants_type == ArrayForm)
         {
-            if (cell->state == CIRCULAR_CHECKED)
+            Cell *cell;
+            for (int i = 0; i < current->dependants_array->size; i++)
             {
-                int flag = 1;
-                if (cell->dependency_count == 1)
+                cell = get_cell(current->dependants_array->rows[i], current->dependants_array->cols[i]);
+                if (cell->state == CIRCULAR_CHECKED)
                 {
-                    if (get_cell(cell->dependency_top_left_row, cell->dependency_top_left_col)->state != CLEAN && get_cell(cell->dependency_top_left_row, cell->dependency_top_left_col)->state != ZERO_ERROR)
+                    int flag = 1;
+                    if (cell->dependency_count == 1)
                     {
-                        flag = 0;
-                    }
-                }
-                if (cell->dependency_count == 2)
-                {
-                    if (get_cell(cell->dependency_top_left_row, cell->dependency_top_left_col)->state != CLEAN && get_cell(cell->dependency_top_left_row, cell->dependency_top_left_col)->state != ZERO_ERROR)
-                    {
-                        flag = 0;
-                    }
-                    else if (get_cell(cell->dependency_bottom_right_row, cell->dependency_bottom_right_col)->state != CLEAN && get_cell(cell->dependency_bottom_right_row, cell->dependency_bottom_right_col)->state != ZERO_ERROR)
-                    {
-                        flag = 0;
-                    }
-                }
-                if (cell->dependency_count > 2)
-                {
-                    for (short i = cell->dependency_top_left_row; i <= cell->dependency_bottom_right_row; i++)
-                    {
-                        for (short j = cell->dependency_top_left_col; j <= cell->dependency_bottom_right_col; j++)
+                        if (get_cell(cell->dependency_top_left_row, cell->dependency_top_left_col)->state != CLEAN && get_cell(cell->dependency_top_left_row, cell->dependency_top_left_col)->state != ZERO_ERROR)
                         {
-                            Cell *dependency_cell = get_cell(i, j);
-                            if (dependency_cell->state != CLEAN && dependency_cell->state != ZERO_ERROR)
+                            flag = 0;
+                        }
+                    }
+                    if (cell->dependency_count == 2)
+                    {
+                        if (get_cell(cell->dependency_top_left_row, cell->dependency_top_left_col)->state != CLEAN && get_cell(cell->dependency_top_left_row, cell->dependency_top_left_col)->state != ZERO_ERROR)
+                        {
+                            flag = 0;
+                        }
+                        else if (get_cell(cell->dependency_bottom_right_row, cell->dependency_bottom_right_col)->state != CLEAN && get_cell(cell->dependency_bottom_right_row, cell->dependency_bottom_right_col)->state != ZERO_ERROR)
+                        {
+                            flag = 0;
+                        }
+                    }
+                    if (cell->dependency_count > 2)
+                    {
+                        for (short i = cell->dependency_top_left_row; i <= cell->dependency_bottom_right_row; i++)
+                        {
+                            for (short j = cell->dependency_top_left_col; j <= cell->dependency_bottom_right_col; j++)
                             {
-                                flag = 0;
+                                Cell *dependency_cell = get_cell(i, j);
+                                if (dependency_cell->state != CLEAN && dependency_cell->state != ZERO_ERROR)
+                                {
+                                    flag = 0;
+                                    break;
+                                }
+                            }
+                            if (flag == 0)
+                            {
                                 break;
                             }
                         }
-                        if (flag == 0)
-                        {
-                            break;
-                        }
                     }
-                }
-                // for (int i = 0; i < cell->dependency_count; i++) {
-                //     if (cell->dependencies[i]->state != CLEAN && cell->dependencies[i]->state != ZERO_ERROR) {
-                //         flag = 0;
-                //         break;
-                //     }
-                // }
-                if (flag)
-                {
-                    stack_push(cell);
+                    // for (int i = 0; i < cell->dependency_count; i++) {
+                    //     if (cell->dependencies[i]->state != CLEAN && cell->dependencies[i]->state != ZERO_ERROR) {
+                    //         flag = 0;
+                    //         break;
+                    //     }
+                    // }
+                    if (flag)
+                    {
+                        stack_push(cell);
+                    }
                 }
             }
         }
-        set_iterator_destroy(iter);
+        else
+        {
+            SetIterator *iter = set_iterator_create(current->dependants_set);
+            Cell *cell;
+            while ((cell = set_iterator_next(iter)) != NULL)
+            {
+                if (cell->state == CIRCULAR_CHECKED)
+                {
+                    int flag = 1;
+                    if (cell->dependency_count == 1)
+                    {
+                        if (get_cell(cell->dependency_top_left_row, cell->dependency_top_left_col)->state != CLEAN && get_cell(cell->dependency_top_left_row, cell->dependency_top_left_col)->state != ZERO_ERROR)
+                        {
+                            flag = 0;
+                        }
+                    }
+                    if (cell->dependency_count == 2)
+                    {
+                        if (get_cell(cell->dependency_top_left_row, cell->dependency_top_left_col)->state != CLEAN && get_cell(cell->dependency_top_left_row, cell->dependency_top_left_col)->state != ZERO_ERROR)
+                        {
+                            flag = 0;
+                        }
+                        else if (get_cell(cell->dependency_bottom_right_row, cell->dependency_bottom_right_col)->state != CLEAN && get_cell(cell->dependency_bottom_right_row, cell->dependency_bottom_right_col)->state != ZERO_ERROR)
+                        {
+                            flag = 0;
+                        }
+                    }
+                    if (cell->dependency_count > 2)
+                    {
+                        for (short i = cell->dependency_top_left_row; i <= cell->dependency_bottom_right_row; i++)
+                        {
+                            for (short j = cell->dependency_top_left_col; j <= cell->dependency_bottom_right_col; j++)
+                            {
+                                Cell *dependency_cell = get_cell(i, j);
+                                if (dependency_cell->state != CLEAN && dependency_cell->state != ZERO_ERROR)
+                                {
+                                    flag = 0;
+                                    break;
+                                }
+                            }
+                            if (flag == 0)
+                            {
+                                break;
+                            }
+                        }
+                    }
+                    // for (int i = 0; i < cell->dependency_count; i++) {
+                    //     if (cell->dependencies[i]->state != CLEAN && cell->dependencies[i]->state != ZERO_ERROR) {
+                    //         flag = 0;
+                    //         break;
+                    //     }
+                    // }
+                    if (flag)
+                    {
+                        stack_push(cell);
+                    }
+                }
+            }
+            set_iterator_destroy(iter);
+        }
     }
 }
 
@@ -641,7 +788,6 @@ int set_expression(const short row, const short col, const Expression expression
                 cell->dependency_bottom_right_row = -1;
                 cell->dependency_bottom_right_col = -1;
             }
-
         }
         else if ((type1 != CELL_REFERENCE) != (type2 != CELL_REFERENCE))
         {

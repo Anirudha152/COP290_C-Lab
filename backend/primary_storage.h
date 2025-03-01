@@ -99,6 +99,13 @@ typedef struct
 
 typedef struct
 {
+    short *rows;
+    short *cols;
+    int size;
+} __attribute__((packed)) DependantsArray;
+
+typedef struct
+{
     SetNode *current;
 } SetIterator;
 
@@ -109,6 +116,12 @@ enum CellState
     DFS_IN_PROGRESS,
     CIRCULAR_CHECKED,
     ZERO_ERROR
+};
+
+enum DependantsType
+{
+    ArrayForm,
+    SetForm
 };
 
 typedef struct Cell
@@ -124,8 +137,12 @@ typedef struct Cell
     short dependency_bottom_right_col;
 
     int dependency_count;
-
-    Set *dependants;
+    union
+    {
+        DependantsArray *dependants_array;
+        Set *dependants_set;
+    };
+    enum DependantsType dependants_type : 1;
 } __attribute__((packed)) Cell;
 
 typedef struct
