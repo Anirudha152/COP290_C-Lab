@@ -273,27 +273,46 @@ pair function_compute(const Cell *cell) {
                 }
             }
         } else if (function_type == STDEV) {
-            ans = 0;
-            double variance = 0.0;
+            // ans = 0;
+            // double variance = 0.0;
+            // for (short i = start_row; i <= end_row; i++) {
+            //     for (short j = start_col; j <= end_col; j++) {
+            //         const Cell *dep = get_cell(rowcol_to_cell_index(i, j));
+            //         if (dep->cell_state == 3)
+            //             goto zero_error_func;
+            //         ans += dep->value;
+            //     }
+            // }
+            // const int mean = ans / ((end_row - start_row + 1) * (end_col - start_col + 1));
+            // for (short i = start_row; i <= end_row; i++) {
+            //     for (short j = start_col; j <= end_col; j++) {
+            //         const Cell *dep = get_cell(rowcol_to_cell_index(i, j));
+            //         if (dep->cell_state == 3)
+            //             goto zero_error_func;
+            //         variance += (dep->value - mean) * (dep->value - mean);
+            //     }
+            // }
+            // variance /= (end_row - start_row + 1) * (end_col - start_col + 1);
+            // ans = (int) round(sqrt(variance));
+            float temp = 0;
+            float temp_sq = 0;
             for (short i = start_row; i <= end_row; i++) {
                 for (short j = start_col; j <= end_col; j++) {
                     const Cell *dep = get_cell(rowcol_to_cell_index(i, j));
-                    if (dep->cell_state == 3)
-                        goto zero_error_func;
-                    ans += dep->value;
+                    if (dep->cell_state == ZERO_ERROR) goto zero_error_func;
+                    temp += dep->value;
                 }
             }
-            const int mean = ans / ((end_row - start_row + 1) * (end_col - start_col + 1));
+            const int size = (end_row - start_row + 1) * (end_col - start_col + 1);
+            const float avg = temp / (float)size;
+
             for (short i = start_row; i <= end_row; i++) {
                 for (short j = start_col; j <= end_col; j++) {
-                    const Cell *dep = get_cell(rowcol_to_cell_index(i, j));
-                    if (dep->cell_state == 3)
-                        goto zero_error_func;
-                    variance += (dep->value - mean) * (dep->value - mean);
+                    temp_sq += ((float) get_raw_value(rowcol_to_cell_index(i, j)) - avg) * ((float) get_raw_value(rowcol_to_cell_index(i, j)) - avg);
                 }
             }
-            variance /= (end_row - start_row + 1) * (end_col - start_col + 1);
-            ans = (int) round(sqrt(variance));
+
+            ans = (int)sqrt(temp_sq / (double)size);
         }
     } else {
         if (cell->val1_type == INTEGER) {
