@@ -1,7 +1,0 @@
-Unknown argument: -l
-Usage: ./sheet R C [options]
-Options:
-  -s, --scroll <n>               Lines to scroll in spreadsheet using WASD (default 10)
-  -v, --viewport <n>             Max number of rows/cols to display        (default 10)
-  -h, --help                     Show this help message
-5

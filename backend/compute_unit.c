@@ -45,7 +45,9 @@ int circular_check(const int start_cell_index) {
                 if (cell->cell_state == 0 || cell->cell_state == 3) {
                     stack_push(cell_index);
                     done = 0;
-                } else if (cell->cell_state == 1) {
+                    break;
+                }
+                if (cell->cell_state == 1) {
                     clear_stack();
                     return 0;
                 }
@@ -63,7 +65,9 @@ int circular_check(const int start_cell_index) {
                 if (cell->cell_state == 0 || cell->cell_state == 3) {
                     stack_push(cell_index);
                     done = 0;
-                } else if (cell->cell_state == 1) {
+                    break;
+                }
+                if (cell->cell_state == 1) {
                     clear_stack();
                     set_iterator_destroy(iter);
                     return 0;
@@ -122,34 +126,38 @@ void clean_cells(const int start_cell) {
             for (int i = 0; i < current->dependants_array->size; i++) {
                 cell_index = current->dependants_array->dependants_cells[i];
                 const Cell *cell = get_cell(cell_index);
-                const int dependency_count = get_dependency_count(cell);
                 if (cell->cell_state == 2) {
                     int flag = 1;
-                    if (dependency_count == 1) {
-                        if (get_cell(cell->val1)->cell_state != 0 && get_cell(cell->val1)->cell_state != 3) {
-                            flag = 0;
+                    if (cell->expression_type == VALUE) {
+                        if (cell->val1_type == CELL_REFERENCE) {
+                            if (get_cell(cell->val1)->cell_state != 0 && get_cell(cell->val1)->cell_state != 3) flag = 0;
                         }
-                    }
-                    if (dependency_count == 2) {
-                        if (get_cell(cell->val1)->cell_state != 0 && get_cell(cell->val1)->cell_state != 3) {
-                            flag = 0;
+                    } else if (cell->expression_type == ARITHMETIC) {
+                        if (cell->val1_type == CELL_REFERENCE) {
+                            if (get_cell(cell->val1)->cell_state != 0 && get_cell(cell->val1)->cell_state != 3) flag = 0;
                         }
-                    }
-                    if (dependency_count > 2) {
-                        const short start_row = cell_index_to_row(cell->val1);
-                        const short start_col = cell_index_to_col(cell->val1);
-                        const short end_row = cell_index_to_row(cell->val2);
-                        const short end_col = cell_index_to_col(cell->val2);
-                        for (short i = start_row; i <= end_row; i++) {
-                            for (short j = start_col; j <= end_col; j++) {
-                                const Cell *dependency_cell = get_cell(rowcol_to_cell_index(i, j));
-                                if (dependency_cell->cell_state != 0 && dependency_cell->cell_state != 3) {
-                                    flag = 0;
+                        if (cell->val2_type == CELL_REFERENCE) {
+                            if (get_cell(cell->val2)->cell_state != 0 && get_cell(cell->val2)->cell_state != 3) flag = 0;
+                        }
+                    } else {
+                        if (cell->val2_type == 1 && cell->op == 1 && cell->val1_type == CELL_REFERENCE) {
+                            if (get_cell(cell->val1)->cell_state != 0 && get_cell(cell->val1)->cell_state != 3) flag = 0;
+                        } else {
+                            const short start_row = cell_index_to_row(cell->val1);
+                            const short start_col = cell_index_to_col(cell->val1);
+                            const short end_row = cell_index_to_row(cell->val2);
+                            const short end_col = cell_index_to_col(cell->val2);
+                            for (short j = start_row; j <= end_row; j++) {
+                                for (short k = start_col; k <= end_col; k++) {
+                                    const Cell *dependency_cell = get_cell(rowcol_to_cell_index(j, k));
+                                    if (dependency_cell->cell_state != 0 && dependency_cell->cell_state != 3) {
+                                        flag = 0;
+                                        break;
+                                    }
+                                }
+                                if (flag == 0) {
                                     break;
                                 }
-                            }
-                            if (flag == 0) {
-                                break;
                             }
                         }
                     }
@@ -163,34 +171,38 @@ void clean_cells(const int start_cell) {
             int cell_index;
             while ((cell_index = set_iterator_next(iter)) != -1) {
                 const Cell *cell = get_cell(cell_index);
-                const int dependency_count = get_dependency_count(cell);
                 if (cell->cell_state == 2) {
                     int flag = 1;
-                    if (dependency_count == 1) {
-                        if (get_cell(cell->val1)->cell_state != 0 && get_cell(cell->val1)->cell_state != 3) {
-                            flag = 0;
+                    if (cell->expression_type == VALUE) {
+                        if (cell->val1_type == CELL_REFERENCE) {
+                            if (get_cell(cell->val1)->cell_state != 0 && get_cell(cell->val1)->cell_state != 3) flag = 0;
                         }
-                    }
-                    if (dependency_count == 2) {
-                        if (get_cell(cell->val1)->cell_state != 0 && get_cell(cell->val1)->cell_state != 3) {
-                            flag = 0;
+                    } else if (cell->expression_type == ARITHMETIC) {
+                        if (cell->val1_type == CELL_REFERENCE) {
+                            if (get_cell(cell->val1)->cell_state != 0 && get_cell(cell->val1)->cell_state != 3) flag = 0;
                         }
-                    }
-                    if (dependency_count > 2) {
-                        const short start_row = cell_index_to_row(cell->val1);
-                        const short start_col = cell_index_to_col(cell->val1);
-                        const short end_row = cell_index_to_row(cell->val2);
-                        const short end_col = cell_index_to_col(cell->val2);
-                        for (short i = start_row; i <= end_row; i++) {
-                            for (short j = start_col; j <= end_col; j++) {
-                                const Cell *dependency_cell = get_cell(rowcol_to_cell_index(i, j));
-                                if (dependency_cell->cell_state != 0 && dependency_cell->cell_state != 3) {
-                                    flag = 0;
+                        if (cell->val2_type == CELL_REFERENCE) {
+                            if (get_cell(cell->val2)->cell_state != 0 && get_cell(cell->val2)->cell_state != 3) flag = 0;
+                        }
+                    } else {
+                        if (cell->val2_type == 1 && cell->op == 1 && cell->val1_type == CELL_REFERENCE) {
+                            if (get_cell(cell->val1)->cell_state != 0 && get_cell(cell->val1)->cell_state != 3) flag = 0;
+                        } else {
+                            const short start_row = cell_index_to_row(cell->val1);
+                            const short start_col = cell_index_to_col(cell->val1);
+                            const short end_row = cell_index_to_row(cell->val2);
+                            const short end_col = cell_index_to_col(cell->val2);
+                            for (short j = start_row; j <= end_row; j++) {
+                                for (short k = start_col; k <= end_col; k++) {
+                                    const Cell *dependency_cell = get_cell(rowcol_to_cell_index(j, k));
+                                    if (dependency_cell->cell_state != 0 && dependency_cell->cell_state != 3) {
+                                        flag = 0;
+                                        break;
+                                    }
+                                }
+                                if (flag == 0) {
                                     break;
                                 }
-                            }
-                            if (flag == 0) {
-                                break;
                             }
                         }
                     }
@@ -273,46 +285,46 @@ pair function_compute(const Cell *cell) {
                 }
             }
         } else if (function_type == STDEV) {
-            // ans = 0;
-            // double variance = 0.0;
-            // for (short i = start_row; i <= end_row; i++) {
-            //     for (short j = start_col; j <= end_col; j++) {
-            //         const Cell *dep = get_cell(rowcol_to_cell_index(i, j));
-            //         if (dep->cell_state == 3)
-            //             goto zero_error_func;
-            //         ans += dep->value;
-            //     }
-            // }
-            // const int mean = ans / ((end_row - start_row + 1) * (end_col - start_col + 1));
-            // for (short i = start_row; i <= end_row; i++) {
-            //     for (short j = start_col; j <= end_col; j++) {
-            //         const Cell *dep = get_cell(rowcol_to_cell_index(i, j));
-            //         if (dep->cell_state == 3)
-            //             goto zero_error_func;
-            //         variance += (dep->value - mean) * (dep->value - mean);
-            //     }
-            // }
-            // variance /= (end_row - start_row + 1) * (end_col - start_col + 1);
-            // ans = (int) round(sqrt(variance));
-            float temp = 0;
-            float temp_sq = 0;
+            ans = 0;
+            double variance = 0.0;
             for (short i = start_row; i <= end_row; i++) {
                 for (short j = start_col; j <= end_col; j++) {
                     const Cell *dep = get_cell(rowcol_to_cell_index(i, j));
-                    if (dep->cell_state == ZERO_ERROR) goto zero_error_func;
-                    temp += dep->value;
+                    if (dep->cell_state == 3)
+                        goto zero_error_func;
+                    ans += dep->value;
                 }
             }
-            const int size = (end_row - start_row + 1) * (end_col - start_col + 1);
-            const float avg = temp / (float)size;
-
+            const int mean = ans / ((end_row - start_row + 1) * (end_col - start_col + 1));
             for (short i = start_row; i <= end_row; i++) {
                 for (short j = start_col; j <= end_col; j++) {
-                    temp_sq += ((float) get_raw_value(rowcol_to_cell_index(i, j)) - avg) * ((float) get_raw_value(rowcol_to_cell_index(i, j)) - avg);
+                    const Cell *dep = get_cell(rowcol_to_cell_index(i, j));
+                    if (dep->cell_state == 3)
+                        goto zero_error_func;
+                    variance += (dep->value - mean) * (dep->value - mean);
                 }
             }
-
-            ans = (int)sqrt(temp_sq / (double)size);
+            variance /= (end_row - start_row + 1) * (end_col - start_col + 1);
+            ans = (int) round(sqrt(variance));
+            // float temp = 0;
+            // float temp_sq = 0;
+            // for (short i = start_row; i <= end_row; i++) {
+            //     for (short j = start_col; j <= end_col; j++) {
+            //         const Cell *dep = get_cell(rowcol_to_cell_index(i, j));
+            //         if (dep->cell_state == ZERO_ERROR) goto zero_error_func;
+            //         temp += dep->value;
+            //     }
+            // }
+            // const int size = (end_row - start_row + 1) * (end_col - start_col + 1);
+            // const float avg = temp / (float)size;
+            //
+            // for (short i = start_row; i <= end_row; i++) {
+            //     for (short j = start_col; j <= end_col; j++) {
+            //         temp_sq += ((float) get_raw_value(rowcol_to_cell_index(i, j)) - avg) * ((float) get_raw_value(rowcol_to_cell_index(i, j)) - avg);
+            //     }
+            // }
+            //
+            // ans = (int)sqrt(temp_sq / (double)size);
         }
     } else {
         if (cell->val1_type == INTEGER) {
@@ -402,26 +414,30 @@ int handle_circular_connection(const int cell_index, const int prev_metadata, co
     Cell *cell = get_cell(cell_index);
     if (!circular_check(cell_index)) {
         clear_debris();
-        const int dependency_count = get_dependency_count(cell);
         // delete current cell as a dependant from its new dependencies
-        if (dependency_count == 1 && cell->val1_type == 1) {
-            delete_dependant(cell->val1, cell_index);
-        }
-        if (dependency_count == 1 && cell->val2_type == 1) {
-            delete_dependant(cell->val2, cell_index);
-        }
-        if (dependency_count == 2) {
-            delete_dependant(cell->val1, cell_index);
-            delete_dependant(cell->val2, cell_index);
-        }
-        if (dependency_count > 2) {
-            const short start_row = cell_index_to_row(cell->val1);
-            const short start_col = cell_index_to_col(cell->val1);
-            const short end_row = cell_index_to_row(cell->val2);
-            const short end_col = cell_index_to_col(cell->val2);
-            for (short i = start_row; i <= end_row; i++) {
-                for (short j = start_col; j <= end_col; j++) {
-                    delete_dependant(rowcol_to_cell_index(i, j), cell_index);
+        if (cell->expression_type == VALUE) {
+            if (cell->val1_type == CELL_REFERENCE) {
+                delete_dependant(cell->val1, cell_index);
+            }
+        } else if (cell->expression_type == ARITHMETIC) {
+            if (cell->val1_type == CELL_REFERENCE) {
+                delete_dependant(cell->val1, cell_index);
+            }
+            if (cell->val2_type == CELL_REFERENCE) {
+                delete_dependant(cell->val2, cell_index);
+            }
+        } else {
+            if (cell->val2_type == 1 && cell->op == 1 && cell->val1_type == CELL_REFERENCE) {
+                delete_dependant(cell->val1, cell_index);
+            } else {
+                const short start_row = cell_index_to_row(cell->val1);
+                const short start_col = cell_index_to_col(cell->val1);
+                const short end_row = cell_index_to_row(cell->val2);
+                const short end_col = cell_index_to_col(cell->val2);
+                for (short i = start_row; i <= end_row; i++) {
+                    for (short j = start_col; j <= end_col; j++) {
+                        delete_dependant(rowcol_to_cell_index(i, j), cell_index);
+                    }
                 }
             }
         }
@@ -430,19 +446,19 @@ int handle_circular_connection(const int cell_index, const int prev_metadata, co
         const int prev_val1_type = (63 & prev_metadata) >> 5;
         const int prev_val2_type = (31 & prev_metadata) >> 4;
         const int prev_op = (15 & prev_metadata) >> 2;
-        if (prev_expression_type == 0) {
-            if (prev_val1_type == 1) {
+        if (prev_expression_type == VALUE) {
+            if (prev_val1_type == CELL_REFERENCE) {
                 add_dependant(prev_val1, cell_index);
             }
-        } else if (prev_expression_type == 1) {
-            if (prev_val1_type == 1) {
+        } else if (prev_expression_type == ARITHMETIC) {
+            if (prev_val1_type == CELL_REFERENCE) {
                 add_dependant(prev_val1, cell_index);
             }
-            if (prev_val2_type == 1) {
+            if (prev_val2_type == CELL_REFERENCE) {
                 add_dependant(prev_val2, cell_index);
             }
-        } else if (prev_expression_type == 2) {
-            if (prev_val2_type == 1 && prev_op == 1) {
+        } else if (prev_expression_type == FUNCTION) {
+            if (prev_val2_type == 1 && prev_op == 1 && prev_val1_type == CELL_REFERENCE) {
                 add_dependant(prev_val1, cell_index);
             } else {
                 const short start_row = cell_index_to_row(prev_val1);
@@ -477,19 +493,29 @@ int set_expression(const int cell_index, const int metadata, const int val1, con
     const int val1_type = (63 & metadata) >> 5;
     const int val2_type = (31 & metadata) >> 4;
     const int op = (15 & metadata) >> 2;
-    if ((cell->expression_type == 0 && cell->val1_type == 1) || (cell->expression_type == 1 && cell->val1_type == 1) ||
-        (cell->expression_type == 2 && cell->val2_type == 1 && cell->op == 1 && cell->val1_type == 1)) {
-        delete_dependant(cell->val1, cell_index);
-    } else if (cell->expression_type == 1 && cell->val2_type == 1) {
-        delete_dependant(cell->val2, cell_index);
-    } else if (cell->expression_type == 2) {
-        const short start_row = cell_index_to_row(cell->val1);
-        const short start_col = cell_index_to_col(cell->val1);
-        const short end_row = cell_index_to_row(cell->val2);
-        const short end_col = cell_index_to_col(cell->val2);
-        for (short i = start_row; i <= end_row; i++) {
-            for (short j = start_col; j <= end_col; j++) {
-                delete_dependant(rowcol_to_cell_index(i, j), cell_index);
+    if (cell->expression_type == VALUE) {
+        if (cell->val1_type == CELL_REFERENCE) {
+            delete_dependant(cell->val1, cell_index);
+        }
+    } else if (cell->expression_type == ARITHMETIC) {
+        if (cell->val1_type == CELL_REFERENCE) {
+            delete_dependant(cell->val1, cell_index);
+        }
+        if (cell->val2_type == CELL_REFERENCE) {
+            delete_dependant(cell->val2, cell_index);
+        }
+    } else if (cell->expression_type == FUNCTION) {
+        if (cell->val2_type == 1 && cell->op == 1 && cell->val1_type == CELL_REFERENCE) {
+            delete_dependant(cell->val1, cell_index);
+        } else {
+            const short start_row = cell_index_to_row(cell->val1);
+            const short start_col = cell_index_to_col(cell->val1);
+            const short end_row = cell_index_to_row(cell->val2);
+            const short end_col = cell_index_to_col(cell->val2);
+            for (short i = start_row; i <= end_row; i++) {
+                for (short j = start_col; j <= end_col; j++) {
+                    delete_dependant(rowcol_to_cell_index(i, j), cell_index);
+                }
             }
         }
     }
@@ -499,27 +525,30 @@ int set_expression(const int cell_index, const int metadata, const int val1, con
     cell->op = op;
     cell->val1 = val1;
     cell->val2 = val2;
-    if ((expression_type == VALUE && val1_type == CELL_REFERENCE) || (
-            expression_type == ARITHMETIC && val1_type == CELL_REFERENCE)) {
-        add_dependant(val1, cell_index);
-    }
-    if (expression_type == ARITHMETIC) {
+    if (expression_type == VALUE) {
+        if (val1_type == CELL_REFERENCE) {
+            add_dependant(val1, cell_index);
+        }
+    } else if (expression_type == ARITHMETIC) {
+        if (val1_type == CELL_REFERENCE) {
+            add_dependant(val1, cell_index);
+        }
         if (val2_type == CELL_REFERENCE) {
             add_dependant(val2, cell_index);
         }
-    } else if (expression_type == FUNCTION && !(val2_type == 1 && op == 1)) {
-        const short start_row = cell_index_to_row(val1);
-        const short start_col = cell_index_to_col(val1);
-        const short end_row = cell_index_to_row(val2);
-        const short end_col = cell_index_to_col(val2);
-        for (short i = start_row; i <= end_row; i++) {
-            for (short j = start_col; j <= end_col; j++) {
-                add_dependant(rowcol_to_cell_index(i, j), cell_index);
-            }
-        }
     } else if (expression_type == FUNCTION) {
-        if (val1_type == CELL_REFERENCE) {
+        if (val2_type == 1 && op == 1 && val1_type == CELL_REFERENCE) {
             add_dependant(val1, cell_index);
+        } else {
+            const short start_row = cell_index_to_row(val1);
+            const short start_col = cell_index_to_col(val1);
+            const short end_row = cell_index_to_row(val2);
+            const short end_col = cell_index_to_col(val2);
+            for (short i = start_row; i <= end_row; i++) {
+                for (short j = start_col; j <= end_col; j++) {
+                    add_dependant(rowcol_to_cell_index(i, j), cell_index);
+                }
+            }
         }
     }
     return handle_circular_connection(cell_index, prev_metadata, prev_val1, prev_val2);

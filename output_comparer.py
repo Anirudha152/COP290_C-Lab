@@ -2,7 +2,7 @@ import re
 
 # File paths
 output_file = "output.txt"
-model_output_file = "model_output.txt"
+model_output_file = "expected_outputs/text_files/sparse_1.txt"
 
 def extract_values_from_output(file_path):
     """Extracts cell values from output.txt while handling 'Zero Error' in State."""

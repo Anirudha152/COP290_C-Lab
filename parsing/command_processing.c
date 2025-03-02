@@ -28,8 +28,8 @@ char *get_expression_string(const int cell_index) {
     } else if (cell->expression_type == ARITHMETIC) {
         Arithmetic arithmetic;
         arithmetic.type = cell->op;
-        const Value val1 = {cell->val1_type, cell->val1};
-        const Value val2 = {cell->val2_type, cell->val2};
+        const Value val1 = {cell->val1, cell->val1_type};
+        const Value val2 = {cell->val2, cell->val2_type};
         arithmetic.value1 = val1;
         arithmetic.value2 = val2;
         const char op = arithmetic.type == ADD

@@ -86,11 +86,7 @@ int main(const int argc, char *argv[]) {
         }
         for (int i = 0; i < m; i++) {
             char reference[CMD_BUFFER_SIZE];
-            fgets(reference, CMD_BUFFER_SIZE, stdin);
-            char *temp = reference;
-            while (*temp++ != '\n') {
-            }
-            *--temp = '\0';
+            scanf("%[^\n]%*c", reference);
             short row, col;
             const int pos = parse_cell_reference(reference, &row, &col);
             if (!pos)
