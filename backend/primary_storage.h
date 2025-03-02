@@ -134,7 +134,7 @@ void initialize_storage();
 
 void destroy_storage();
 
-void initialize_cell(Cell *cell, int cell_index);
+void initialize_cell(Cell *cell);
 
 int get_raw_value(int cell_index);
 

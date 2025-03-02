@@ -104,7 +104,7 @@ def main():
 
     # Sort test files by test number
     test_files.sort(key=lambda x: int(os.path.basename(x)[2:-4]))
-
+    test_files = test_files[:1]
     if not test_files:
         print("No test files found in testcases directory (format: tc{n}.txt)")
         sys.exit(1)

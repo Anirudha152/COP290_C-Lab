@@ -15,7 +15,7 @@ void initialize_storage() {
         exit(1);
     }
     for (int i = 0; i < TOT_ROWS * TOT_COLS; i++) {
-        initialize_cell(&table[i], i);
+        initialize_cell(&table[i]);
     }
     initialize_stack();
     initialize_stack_mem();
@@ -36,8 +36,8 @@ void destroy_storage() {
 }
 
 DependantsArray *initialize_dependants_array() {
-    DependantsArray *dependants_array = (DependantsArray *) malloc(sizeof(DependantsArray));
-    if (dependants_array->dependants_cells == NULL) {
+    DependantsArray *dependants_array = malloc(sizeof(DependantsArray));
+    if (dependants_array == NULL) {
         printf("Memory allocation failed\n");
         exit(1);
     }
@@ -48,7 +48,7 @@ DependantsArray *initialize_dependants_array() {
     return dependants_array;
 }
 
-void initialize_cell(Cell *cell, const int cell_index) {
+void initialize_cell(Cell *cell) {
     cell->value = 0;
     cell->expression_type = 0;
     cell->val1_type = 0;
@@ -70,7 +70,7 @@ int get_raw_value(const int cell_index) {
     return cell->value;
 }
 
-int dependant_exists(DependantsArray *dependants_array, const int cell_index) {
+int dependant_exists(const DependantsArray *dependants_array, const int cell_index) {
     for (int i = 0; i < dependants_array->size; i++) {
         if (dependants_array->dependants_cells[i] == cell_index) {
             return 1;
@@ -95,6 +95,7 @@ void add_dependant(const int source_cell_index, const int cell_index) {
             for (int i = 0; i < 4; i++) {
                 set_insert(dependants, cell->dependants_array->dependants_cells[i]);
             }
+            set_insert(dependants, cell_index);
             free(cell->dependants_array);
             cell->dependants_set = dependants;
         } else {
@@ -122,6 +123,7 @@ void delete_dependant(const int source_cell_index, const int cell_index) {
         for (int i = index; i < source->dependants_array->size - 1; i++) {
             source->dependants_array->dependants_cells[i] = source->dependants_array->dependants_cells[i + 1];
         }
+        source->dependants_array->dependants_cells[source->dependants_array->size - 1] = -1;
         source->dependants_array->size--;
     } else {
         set_remove(source->dependants_set, cell_index);
