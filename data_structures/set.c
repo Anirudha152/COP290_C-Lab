@@ -75,7 +75,7 @@ static SetNode* rotate_left(Set *set, SetNode *x) {
     return y;
 }
 
-static SetNode* create_node(int cell_index) {
+static SetNode* create_node(const int cell_index) {
     SetNode *node = malloc(sizeof(SetNode));
     if (!node) return NULL;
     node->cell_index = cell_index;

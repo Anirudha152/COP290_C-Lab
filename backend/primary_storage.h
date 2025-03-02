@@ -9,15 +9,15 @@ enum CellState {
     ZERO_ERROR
 };
 
-enum DependentsType {
+enum DependantsType {
     ArrayForm,
     SetForm
 };
 
-typedef struct DependentsArray{
-    int dependents_cells[4];
+typedef struct DependantsArray{
+    int dependants_cells[4];
     int size;
-} __attribute__((packed)) DependentsArray;
+} __attribute__((packed)) DependantsArray;
 
 typedef struct SetNode {
     int cell_index;
@@ -106,10 +106,10 @@ typedef struct Cell {
     unsigned int cell_state: 2;
     int val1;
     int val2;
-    enum DependentsType dependents_type: 2;
+    enum DependantsType dependants_type: 2;
     union {
-        DependentsArray* dependents_array;
-        Set* dependents_set;
+        DependantsArray* dependants_array;
+        Set* dependants_set;
     };
 } __attribute__((packed)) Cell;
 
