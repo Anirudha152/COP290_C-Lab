@@ -1,4 +1,4 @@
-# COP290 C Lab
+# COP290 C Lab: Memory Safe Spreadsheet Program in C
 
 **Authors:** Anirudha Saraf, Ayush Kumar Singh, Nishchay Patil
 
