@@ -85,7 +85,3 @@ Test mode takes input from stdin similar to a codeforces input
 
 ## Disclaimer 
 This code was developed as part of an academic assignment for the COP290 course at IIT Delhi. It is intended for educational purposes and was completed in March 2025, it is no longer being actively updated or maintained, please reach out to me over email or linkedin for any queries. Please cite appropriately if used in research or projects. Please refer to the included report for more details
-
-## Disclaimer 
-This code was developed as part of an academic assignment for the COL226 course at IIT Delhi. It is intended for educational purposes and was completed in April 2025, it is no longer being actively updated or maintained, please reach out to me over email or linkedin for any queries. Please cite appropriately if used in research or projects. Please refer to the included report for more details
-
