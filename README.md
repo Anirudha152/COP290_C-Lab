@@ -1,12 +1,12 @@
-# COP290-C_LAB
+# COP290 C Lab
 
-## Team Members
-1. Anirudha Saraf (2023CS10806)
-2. Nishchay Patil (2023CS10269)
-3. Ayush Kumar Singh (2023CS10477)
+**Authors:** Anirudha Saraf, Ayush Kumar Singh, Nishchay Patil
 
 ## Assignment Description
-This repository contains the code for the C Lab Assignment for COP290 course. The assignment is to implement a simplified spreadsheet program in C similar to Excel. The program stores the matrix in memory with a scrollable viewport on display. It will support the below specified functions along with lazy evaluation and storing the data on the heap to maximise the efficiency and scalability of the program.
+The assignment is to implement a simplified spreadsheet program in C similar to Excel. The program stores the matrix in memory with a scrollable viewport on display. It will support the below specified functions along with lazy evaluation and storing the data on the heap to maximise the efficiency and scalability of the program.
+
+The purpose of this assignment is to explore various design practices associated with C Programming as well as learning effective and safe memory management. It is significantly faster than excel at running heavily nested expressions, with long chains of cell dependencies consisting of simple expressions.
+
 The expressions that each cell can contain are:
 1. Value
     1. Constant
@@ -82,3 +82,10 @@ Test mode takes input from stdin similar to a codeforces input
   - `m` is the number of queries
 - The next `n` lines will contain expressions to set values to cells, or the `scroll_to <CELL>` command which will change the virtual viewport of the program, for lazy evaluation
 - The following `m` lines will contain queries in the form of `<CELL>` to get the **raw** value of a cell. If lazy evaluation is enabled, this may return a dirty cell with an unprocessed value.
+
+## Disclaimer 
+This code was developed as part of an academic assignment for the COP290 course at IIT Delhi. It is intended for educational purposes and was completed in March 2025, it is no longer being actively updated or maintained, please reach out to me over email or linkedin for any queries. Please cite appropriately if used in research or projects. Please refer to the included report for more details
+
+## Disclaimer 
+This code was developed as part of an academic assignment for the COL226 course at IIT Delhi. It is intended for educational purposes and was completed in April 2025, it is no longer being actively updated or maintained, please reach out to me over email or linkedin for any queries. Please cite appropriately if used in research or projects. Please refer to the included report for more details
+
